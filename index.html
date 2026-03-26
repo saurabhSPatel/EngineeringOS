@@ -271,7 +271,7 @@
   /* ROADMAP cards - larger */
   .roadmap-grid {
     display:grid;
-    grid-template-columns: repeat(2,1fr);
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap:1.5rem;
   }
   .roadmap-card {
@@ -386,12 +386,13 @@
     Your Personal<br>
     <span class="line2">Engineering OS</span>
   </h1>
-  <p class="hero-sub">Zero fluff. Pattern-first DSA. Staff-level System Design. Nine one-day crash courses built for someone who already ships production Go at scale.</p>
+  <p class="hero-sub">Zero fluff. Pattern-first DSA. Staff-level System Design. ML from linear regression to LLMs. Nine one-day crash courses built for someone who already ships production Go at scale.</p>
   <div class="hero-stats">
     <div class="stat"><span class="stat-num">30</span><span class="stat-label">Days · DSA</span></div>
     <div class="stat"><span class="stat-num">30</span><span class="stat-label">Days · Sys Design</span></div>
+    <div class="stat"><span class="stat-num">28</span><span class="stat-label">Days · ML</span></div>
     <div class="stat"><span class="stat-num">9</span><span class="stat-label">Crash Courses</span></div>
-    <div class="stat"><span class="stat-num">~80h</span><span class="stat-label">Total Learning</span></div>
+    <div class="stat"><span class="stat-num">~90h</span><span class="stat-label">Total Learning</span></div>
   </div>
 </div>
 
@@ -437,7 +438,21 @@
       <span class="roadmap-cta" style="color:var(--accent3);">Open Roadmap →</span>
     </a>
 
-  </div>
+    <a href="https://saurabhspatel.github.io/ml-in-a-month/" class="roadmap-card" style="--rm-glow:rgba(255,95,64,0.06);--rm-border:rgba(255,95,64,0.4);">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-family:JetBrains Mono,monospace;font-size:0.7rem;color:var(--accent2);letter-spacing:.08em;">ML · AI · LLMs</span>
+        <span style="font-family:JetBrains Mono,monospace;font-size:0.7rem;color:var(--muted);">28 days</span>
+      </div>
+      <div class="roadmap-title">ML in a Month</div>
+      <p class="roadmap-desc">Visual, intuition-first ML. Linear regression to LLMs. StatQuest + 3Blue1Brown + Karpathy. Build micrograd and nanoGPT from scratch. 56+ curated videos, 84 quiz questions.</p>
+      <div class="roadmap-weeks">
+        <span class="week-badge">W1: ML Foundations</span>
+        <span class="week-badge">W2: Deep Learning</span>
+        <span class="week-badge">W3: Transformers</span>
+        <span class="week-badge">W4: LLMs & Agents</span>
+      </div>
+      <span class="roadmap-cta" style="color:var(--accent2);">Open Roadmap →</span>
+    </a>
 </section>
 
 <hr class="divider">
