@@ -66,7 +66,7 @@
 </nav>
 
 <div class="hero">
-  <div class="tag">HLD + LLD · STAFF-LEVEL · TRADE-OFFS FIRST · AI AGENTS</div>
+  <div class="tag">HLD + LLD · TRADE-OFFS FIRST · PATTERNS · AI AGENTS</div>
   <h1>System Design <span>in 30 Days</span></h1>
   <p class="hero-desc">From CAP theorem to designing WhatsApp — and AI agent systems. Every day: one concept, one real system, the trade-offs a Staff engineer thinks about. Interview-ready by Day 30. Optional Week 5 adds the 2025 frontier: LLM platforms, RAG at scale, multi-agent orchestration.</p>
   <div class="meta-row">
@@ -79,55 +79,300 @@
 </div>
 
 <!-- VIDEO RESOURCES -->
-<div style="max-width:1100px;margin:0 auto;padding:0 2rem 3rem;">
+<div style="max-width:1100px;margin:0 auto;padding:0 2rem 2rem;">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;">
-    <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1.25rem;">▸ Best Video Resources — Staff / Sr. Engineer Level</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1.25rem;">▸ Best Video Resources — Watch These Specific Videos</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;">
 
-      <a href="https://www.youtube.com/@ByteByteGo" target="_blank" style="text-decoration:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;display:flex;flex-direction:column;gap:.4rem;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <a href="https://www.youtube.com/watch?v=i7twT3x5yv8" target="_blank" style="text-decoration:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;display:flex;flex-direction:column;gap:.4rem;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
         <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--accent);">ByteByteGo · Alex Xu</div>
-        <div style="font-size:.82rem;color:var(--text);font-weight:500;">System Design Interview series</div>
-        <div style="font-size:.75rem;color:var(--muted);">Best visual explanations of every major system. Direct companion to the "System Design Interview" books. Start here.</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent3);margin-top:.25rem;">ESSENTIAL ↗</div>
+        <div style="font-size:.82rem;color:var(--text);font-weight:500;">System Design Interview — Step By Step Guide</div>
+        <div style="font-size:.75rem;color:var(--muted);">The exact framework used in real interviews: requirements → estimation → HLD → deep dive → wrap-up. Watch this first before any specific design.</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent3);margin-top:.25rem;">START HERE · 12 min ↗</div>
       </a>
 
-      <a href="https://www.youtube.com/@gkcs" target="_blank" style="text-decoration:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;display:flex;flex-direction:column;gap:.4rem;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <a href="https://www.youtube.com/watch?v=quLrc3PbuIw" target="_blank" style="text-decoration:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;display:flex;flex-direction:column;gap:.4rem;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
         <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--accent);">Gaurav Sen · ex-Google</div>
-        <div style="font-size:.82rem;color:var(--text);font-weight:500;">Consistent Hashing, HLD deep dives</div>
-        <div style="font-size:.75rem;color:var(--muted);">Intuition-first. Best for understanding WHY behind design decisions. Great for Kafka, distributed systems, HLD.</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent3);margin-top:.25rem;">INTUITION ↗</div>
+        <div style="font-size:.82rem;color:var(--text);font-weight:500;">Consistent Hashing | System Design</div>
+        <div style="font-size:.75rem;color:var(--muted);">The best explanation of consistent hashing on YouTube. Understand the ring, virtual nodes, and why it matters for sharding and CDN routing.</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent3);margin-top:.25rem;">MUST WATCH · 12 min ↗</div>
       </a>
 
-      <a href="https://www.youtube.com/@hussein.nasser" target="_blank" style="text-decoration:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;display:flex;flex-direction:column;gap:.4rem;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <a href="https://www.youtube.com/watch?v=xpDnVSmNFX0" target="_blank" style="text-decoration:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;display:flex;flex-direction:column;gap:.4rem;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--accent);">Gaurav Sen · ex-Google</div>
+        <div style="font-size:.82rem;color:var(--text);font-weight:500;">Design WhatsApp — System Design Interview</div>
+        <div style="font-size:.75rem;color:var(--muted);">Full HLD walkthrough: WebSockets, message queue, Cassandra for messages, presence system. See how trade-offs are articulated verbally.</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent3);margin-top:.25rem;">FULL DESIGN · 20 min ↗</div>
+      </a>
+
+      <a href="https://www.youtube.com/watch?v=UEg40Te8pnE" target="_blank" style="text-decoration:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;display:flex;flex-direction:column;gap:.4rem;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--accent);">Gaurav Sen · ex-Google</div>
+        <div style="font-size:.82rem;color:var(--text);font-weight:500;">Design Twitter — Timelines at Scale</div>
+        <div style="font-size:.75rem;color:var(--muted);">Fan-out on write vs fan-out on read. The hybrid approach for celebrities vs normal users. The definitive fan-out explanation.</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent3);margin-top:.25rem;">FAN-OUT DEEP DIVE · 22 min ↗</div>
+      </a>
+
+      <a href="https://www.youtube.com/watch?v=tndzLznxq40" target="_blank" style="text-decoration:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;display:flex;flex-direction:column;gap:.4rem;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
         <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--accent);">Hussein Nasser</div>
-        <div style="font-size:.82rem;color:var(--text);font-weight:500;">Networking, Proxies, Databases</div>
-        <div style="font-size:.75rem;color:var(--muted);">Best for TCP, HTTP/2, WebSockets, PostgreSQL internals, and proxy architecture. Staff-level depth on protocols.</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent3);margin-top:.25rem;">DEEP DIVES ↗</div>
+        <div style="font-size:.82rem;color:var(--text);font-weight:500;">What is a Proxy? Forward vs Reverse Proxy</div>
+        <div style="font-size:.75rem;color:var(--muted);">L4 vs L7 proxies, forward vs reverse proxy, what actually happens on every HTTP request. Best networking foundations video.</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent3);margin-top:.25rem;">NETWORKING · 18 min ↗</div>
       </a>
 
-      <a href="https://www.youtube.com/@codeKarle" target="_blank" style="text-decoration:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;display:flex;flex-direction:column;gap:.4rem;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <a href="https://www.youtube.com/watch?v=FqR5vESuKe0" target="_blank" style="text-decoration:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;display:flex;flex-direction:column;gap:.4rem;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--accent);">Hussein Nasser</div>
+        <div style="font-size:.82rem;color:var(--text);font-weight:500;">Database Sharding — Complete Guide</div>
+        <div style="font-size:.75rem;color:var(--muted);">Horizontal vs vertical partitioning, consistent hashing for sharding, hotspot problem and solutions. Production-level depth.</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent3);margin-top:.25rem;">DATABASE · 25 min ↗</div>
+      </a>
+
+      <a href="https://www.youtube.com/watch?v=a-I_9eD7PX4" target="_blank" style="text-decoration:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;display:flex;flex-direction:column;gap:.4rem;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
         <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--accent);">codeKarle</div>
-        <div style="font-size:.82rem;color:var(--text);font-weight:500;">End-to-end HLD walkthroughs</div>
-        <div style="font-size:.75rem;color:var(--muted);">Complete system designs: Uber, Zomato, Hotstar. Covers LLD + HLD together. Great for interview simulation.</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent3);margin-top:.25rem;">FULL DESIGNS ↗</div>
+        <div style="font-size:.82rem;color:var(--text);font-weight:500;">Design Uber — System Design Interview</div>
+        <div style="font-size:.75rem;color:var(--muted);">Real-time geolocation, geohash for proximity search, matching service, surge pricing. Full HLD + LLD in one video.</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent3);margin-top:.25rem;">FULL HLD+LLD · 35 min ↗</div>
       </a>
 
-      <a href="https://www.youtube.com/@SDFC" target="_blank" style="text-decoration:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;display:flex;flex-direction:column;gap:.4rem;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--accent);">System Design Fight Club</div>
-        <div style="font-size:.82rem;color:var(--text);font-weight:500;">Staff+ mock interviews</div>
-        <div style="font-size:.75rem;color:var(--muted);">Real mock interviews with ex-FAANG engineers at Staff level. Best for understanding the calibration bar and communication style.</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent3);margin-top:.25rem;">MOCK INTERVIEWS ↗</div>
+      <a href="https://www.youtube.com/watch?v=bUHFg8CZFws" target="_blank" style="text-decoration:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;display:flex;flex-direction:column;gap:.4rem;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--accent);">codeKarle</div>
+        <div style="font-size:.82rem;color:var(--text);font-weight:500;">Design Netflix / Hotstar — Video Streaming</div>
+        <div style="font-size:.75rem;color:var(--muted);">CDN architecture, adaptive bitrate streaming, transcoding pipeline, recommendation system. Industry-grade design breakdown.</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent3);margin-top:.25rem;">STREAMING · 30 min ↗</div>
       </a>
 
       <a href="https://www.hellointerview.com/learn/system-design/in-a-hurry/introduction" target="_blank" style="text-decoration:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;display:flex;flex-direction:column;gap:.4rem;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--accent);">HelloInterview · Free Guide</div>
-        <div style="font-size:.82rem;color:var(--text);font-weight:500;">System Design in a Hurry</div>
-        <div style="font-size:.75rem;color:var(--muted);">Built by FAANG hiring managers. Written course that covers exactly what Staff+ interviews test. Free, comprehensive, and practical.</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent3);margin-top:.25rem;">READ THIS ↗</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--accent);">HelloInterview · Free Written Course</div>
+        <div style="font-size:.82rem;color:var(--text);font-weight:500;">System Design in a Hurry — Full Guide</div>
+        <div style="font-size:.75rem;color:var(--muted);">Built by FAANG hiring managers. Covers every topic in this 30-day roadmap with interview rubric context. Bookmark this.</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent3);margin-top:.25rem;">FREE GUIDE ↗</div>
       </a>
 
     </div>
   </div>
+</div>
+
+<!-- HLD / LLD PATTERNS — NEW SECTION -->
+<div style="max-width:1100px;margin:0 auto;padding:0 2rem 2rem;">
+
+  <!-- HOW TO DRAW HLD -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;margin-bottom:1.5rem;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1.5rem;">▸ HOW TO DRAW AN HLD DIAGRAM</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:1rem;">The 5-Layer HLD Anatomy</div>
+        <div style="background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:8px;padding:1rem;font-family:'JetBrains Mono',monospace;font-size:.72rem;color:#94a3b8;line-height:2;white-space:pre;">
+<span style="color:var(--accent3);">Layer 1 — CLIENT</span>
+Mobile / Web / 3rd party API
+
+        ↓  HTTPS
+
+<span style="color:var(--accent3);">Layer 2 — EDGE</span>
+CDN → DNS → Load Balancer
+API Gateway (auth, rate limit)
+
+        ↓  internal
+
+<span style="color:var(--accent3);">Layer 3 — SERVICES</span>
+Stateless microservices / monolith
+Each service owns its domain
+
+        ↓  async
+
+<span style="color:var(--accent3);">Layer 4 — MESSAGING</span>
+Message Queue (Kafka / SQS)
+Event bus for async workflows
+
+        ↓  read/write
+
+<span style="color:var(--accent3);">Layer 5 — DATA</span>
+Primary DB (SQL / NoSQL)
+Cache (Redis) · Search (ES)
+Object Store (S3) · CDN</div>
+      </div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:.75rem;">HLD Drawing Rules</div>
+        <div style="font-size:.82rem;color:var(--muted);line-height:1.8;display:flex;flex-direction:column;gap:.5rem;">
+          <div style="padding:.5rem .75rem;background:rgba(0,229,176,0.05);border-left:2px solid var(--accent3);border-radius:0 4px 4px 0;"><strong style="color:var(--text);">Start with clients and APIs</strong> — what does the outside world call? Define 2-3 key APIs before any boxes.</div>
+          <div style="padding:.5rem .75rem;background:rgba(0,229,176,0.05);border-left:2px solid var(--accent3);border-radius:0 4px 4px 0;"><strong style="color:var(--text);">One level of abstraction</strong> — HLD shows components and connections, NOT class fields or method signatures.</div>
+          <div style="padding:.5rem .75rem;background:rgba(0,229,176,0.05);border-left:2px solid var(--accent3);border-radius:0 4px 4px 0;"><strong style="color:var(--text);">Label every arrow</strong> — HTTP/REST, gRPC, Kafka topic name, SQL query. Unlabelled arrows = undefined interface.</div>
+          <div style="padding:.5rem .75rem;background:rgba(0,229,176,0.05);border-left:2px solid var(--accent3);border-radius:0 4px 4px 0;"><strong style="color:var(--text);">Show data flow direction</strong> — sync (→) vs async (⇢ dashed). Distinguish read from write paths.</div>
+          <div style="padding:.5rem .75rem;background:rgba(0,229,176,0.05);border-left:2px solid var(--accent3);border-radius:0 4px 4px 0;"><strong style="color:var(--text);">Annotate with numbers</strong> — "10K RPS", "50ms p99", "3 replicas". Numbers make diagrams credible.</div>
+          <div style="padding:.5rem .75rem;background:rgba(0,229,176,0.05);border-left:2px solid var(--accent3);border-radius:0 4px 4px 0;"><strong style="color:var(--text);">Box what scales independently</strong> — each box in your HLD should be independently deployable and scalable.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOW TO DRAW LLD -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;margin-bottom:1.5rem;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1.5rem;">▸ HOW TO DRAW AN LLD DIAGRAM</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:1rem;">LLD = Classes + Relationships + DB Schema</div>
+        <div style="background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:8px;padding:1rem;font-family:'JetBrains Mono',monospace;font-size:.72rem;color:#94a3b8;line-height:2;white-space:pre;">
+<span style="color:var(--accent2);">// LLD for Ride-Booking (Uber)</span>
+
+<span style="color:var(--accent3);">[Rider]</span>           <span style="color:var(--accent3);">[Driver]</span>
+  id: UUID           id: UUID
+  name: String       name: String
+  location: GeoPoint location: GeoPoint
+  rating: Float      rating: Float
+       ↓ creates          ↑ accepts
+      <span style="color:var(--accent2);">[Ride]</span>
+       id: UUID
+       rider_id: FK → Rider
+       driver_id: FK → Driver
+       status: ENUM(REQUESTED,
+                    MATCHED,
+                    IN_PROGRESS,
+                    COMPLETED)
+       pickup: GeoPoint
+       dropoff: GeoPoint
+       fare: Decimal
+       created_at: Timestamp
+
+<span style="color:var(--accent3);">[MatchingService]</span>
+  + findNearbyDrivers(loc, radius): [Driver]
+  + assignDriver(rideId, driverId): Ride
+  + calculateFare(distance, time): Decimal</pre>
+      </div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:.75rem;">LLD Drawing Rules</div>
+        <div style="font-size:.82rem;color:var(--muted);line-height:1.8;display:flex;flex-direction:column;gap:.5rem;">
+          <div style="padding:.5rem .75rem;background:rgba(255,95,64,0.05);border-left:2px solid var(--accent2);border-radius:0 4px 4px 0;"><strong style="color:var(--text);">Entities first</strong> — identify the nouns in the problem: User, Order, Product, Ride. Each noun = a class / table.</div>
+          <div style="padding:.5rem .75rem;background:rgba(255,95,64,0.05);border-left:2px solid var(--accent2);border-radius:0 4px 4px 0;"><strong style="color:var(--text);">Relationships</strong> — one-to-one, one-to-many, many-to-many. Draw with cardinality labels (1:N, M:N).</div>
+          <div style="padding:.5rem .75rem;background:rgba(255,95,64,0.05);border-left:2px solid var(--accent2);border-radius:0 4px 4px 0;"><strong style="color:var(--text);">State machines</strong> — any entity with a status field needs a state diagram. Show valid transitions.</div>
+          <div style="padding:.5rem .75rem;background:rgba(255,95,64,0.05);border-left:2px solid var(--accent2);border-radius:0 4px 4px 0;"><strong style="color:var(--text);">DB schema</strong> — show primary keys (PK), foreign keys (FK), indexes. Which queries does this schema support?</div>
+          <div style="padding:.5rem .75rem;background:rgba(255,95,64,0.05);border-left:2px solid var(--accent2);border-radius:0 4px 4px 0;"><strong style="color:var(--text);">Design patterns</strong> — name the pattern: Strategy, Observer, Factory. Shows architectural literacy.</div>
+          <div style="padding:.5rem .75rem;background:rgba(255,95,64,0.05);border-left:2px solid var(--accent2);border-radius:0 4px 4px 0;"><strong style="color:var(--text);">Concurrency</strong> — where can race conditions occur? Show locking strategy: optimistic vs pessimistic.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMON SYSTEM DESIGN PATTERNS -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;margin-bottom:1.5rem;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1.5rem;">▸ 12 PATTERNS EVERY DESIGN QUESTION MAPS TO</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem;">
+
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--accent);margin-bottom:.5rem;">PATTERN 01 · READ HEAVY</div>
+        <div style="font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:.4rem;">Cache-Aside + Read Replicas</div>
+        <div style="font-size:.78rem;color:var(--muted);line-height:1.6;">Cache sits in front of DB. App checks cache first (miss → DB → populate cache). Add read replicas for query fanout. Use for: product pages, social feeds, anything 10:1 read:write. Key question: cache invalidation strategy?</div>
+        <div style="font-size:.72rem;color:var(--accent3);margin-top:.5rem;font-family:'JetBrains Mono',monospace;">Examples: Twitter feed, Amazon product page, YouTube views</div>
+      </div>
+
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--accent);margin-bottom:.5rem;">PATTERN 02 · WRITE HEAVY</div>
+        <div style="font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:.4rem;">Write-Ahead Queue + Async Processing</div>
+        <div style="font-size:.78rem;color:var(--muted);line-height:1.6;">Writes go to a fast queue (Kafka/SQS), consumers process asynchronously. Decouple ingestion from processing. Backpressure handled by queue depth. Use for: analytics events, logs, IoT telemetry, order processing. Key: exactly-once semantics?</div>
+        <div style="font-size:.72rem;color:var(--accent3);margin-top:.5rem;font-family:'JetBrains Mono',monospace;">Examples: Uber location updates, metrics ingestion, email queue</div>
+      </div>
+
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--accent);margin-bottom:.5rem;">PATTERN 03 · REAL-TIME</div>
+        <div style="font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:.4rem;">WebSocket + Pub-Sub Backend</div>
+        <div style="font-size:.78rem;color:var(--muted);line-height:1.6;">Clients hold persistent WebSocket connections. Backend publishes events to Redis Pub-Sub or Kafka; connection servers fan out to subscribed clients. Use for: chat, live scores, collaborative editing. Key: what happens on disconnect/reconnect?</div>
+        <div style="font-size:.72rem;color:var(--accent3);margin-top:.5rem;font-family:'JetBrains Mono',monospace;">Examples: WhatsApp, Slack, Figma, live sports dashboard</div>
+      </div>
+
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--accent);margin-bottom:.5rem;">PATTERN 04 · GLOBAL SCALE</div>
+        <div style="font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:.4rem;">CDN + Edge Caching + GeoDNS</div>
+        <div style="font-size:.78rem;color:var(--muted);line-height:1.6;">Static assets served from CDN edge. GeoDNS routes requests to nearest PoP. Origin shield prevents thundering herd on origin. Use for: video delivery, static sites, global APIs. Key: cache invalidation at edge, data residency requirements.</div>
+        <div style="font-size:.72rem;color:var(--accent3);margin-top:.5rem;font-family:'JetBrains Mono',monospace;">Examples: Netflix, YouTube, Cloudflare, AWS CloudFront</div>
+      </div>
+
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--accent);margin-bottom:.5rem;">PATTERN 05 · DISTRIBUTED TX</div>
+        <div style="font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:.4rem;">Saga Pattern (Choreography / Orchestration)</div>
+        <div style="font-size:.78rem;color:var(--muted);line-height:1.6;">Break multi-service transactions into steps. Each step publishes an event. On failure: compensating transactions undo prior steps. Choreography = event-driven, no coordinator. Orchestration = central saga controller. Use for: payments, order fulfillment, booking.</div>
+        <div style="font-size:.72rem;color:var(--accent3);margin-top:.5rem;font-family:'JetBrains Mono',monospace;">Examples: e-commerce checkout, flight booking, bank transfer</div>
+      </div>
+
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--accent);margin-bottom:.5rem;">PATTERN 06 · DUAL WRITE SAFETY</div>
+        <div style="font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:.4rem;">Outbox Pattern + CDC</div>
+        <div style="font-size:.78rem;color:var(--muted);line-height:1.6;">Write to DB and Outbox table in same transaction. Debezium reads WAL and publishes Outbox rows to Kafka. Atomicity within DB, eventual delivery to message bus. Eliminates dual-write failure. Use for: any service that writes to DB AND needs to publish events reliably.</div>
+        <div style="font-size:.72rem;color:var(--accent3);margin-top:.5rem;font-family:'JetBrains Mono',monospace;">Examples: Order service → inventory events, payment confirmation</div>
+      </div>
+
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--accent);margin-bottom:.5rem;">PATTERN 07 · SEARCH</div>
+        <div style="font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:.4rem;">Inverted Index + Elasticsearch Sync</div>
+        <div style="font-size:.78rem;color:var(--muted);line-height:1.6;">Primary store in DB (source of truth). Elasticsearch as read-optimized search replica. Sync via Kafka CDC pipeline. ES inverted index enables full-text, faceted, geospatial search. Key: eventual consistency acceptable for search? Reindex on schema change.</div>
+        <div style="font-size:.72rem;color:var(--accent3);margin-top:.5rem;font-family:'JetBrains Mono',monospace;">Examples: Airbnb search, LinkedIn search, product catalog</div>
+      </div>
+
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--accent);margin-bottom:.5rem;">PATTERN 08 · GEO-PROXIMITY</div>
+        <div style="font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:.4rem;">Geohash Grid + Spatial Index</div>
+        <div style="font-size:.78rem;color:var(--muted);line-height:1.6;">Encode lat/lng as geohash string. Nearby = nearby geohash prefix. Redis GEO commands or PostGIS for radius queries. Update moving objects via WebSocket stream + Redis SET. Key: precision vs cell size trade-off, boundary edge cases.</div>
+        <div style="font-size:.72rem;color:var(--accent3);margin-top:.5rem;font-family:'JetBrains Mono',monospace;">Examples: Uber driver matching, Yelp nearby, Tinder radius</div>
+      </div>
+
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--accent);margin-bottom:.5rem;">PATTERN 09 · RATE LIMITING</div>
+        <div style="font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:.4rem;">Token Bucket / Sliding Window at Gateway</div>
+        <div style="font-size:.78rem;color:var(--muted);line-height:1.6;">API Gateway checks Redis before forwarding. Token bucket: burst-friendly, refills over time. Sliding window log: precise but memory-heavy. Sliding window counter: approximation, memory-efficient. Return 429 + Retry-After. Distribute state via Redis cluster.</div>
+        <div style="font-size:.72rem;color:var(--accent3);margin-top:.5rem;font-family:'JetBrains Mono',monospace;">Examples: API platform, payment gateway, SMS OTP service</div>
+      </div>
+
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--accent);margin-bottom:.5rem;">PATTERN 10 · UNIQUE ID</div>
+        <div style="font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:.4rem;">Snowflake ID / UUID v7</div>
+        <div style="font-size:.78rem;color:var(--muted);line-height:1.6;">Snowflake: 64-bit = 41-bit timestamp + 10-bit machine + 12-bit seq. Sortable, ~4096 IDs/ms/machine. UUID v4: random, 128-bit, globally unique but not sortable (bad for DB index locality). UUID v7: time-ordered UUID — sortable + universally unique. Use Snowflake for high-throughput sequential IDs.</div>
+        <div style="font-size:.72rem;color:var(--accent3);margin-top:.5rem;font-family:'JetBrains Mono',monospace;">Examples: Twitter tweet IDs, Instagram media IDs, order IDs</div>
+      </div>
+
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--accent);margin-bottom:.5rem;">PATTERN 11 · CQRS</div>
+        <div style="font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:.4rem;">Command Query Responsibility Segregation</div>
+        <div style="font-size:.78rem;color:var(--muted);line-height:1.6;">Separate the write model (commands, normalized DB) from the read model (queries, denormalized read store). Commands produce events that update multiple read models. Enables independent scaling of read/write. Read models can be different DBs: Redis for leaderboard, ES for search, Cassandra for feeds.</div>
+        <div style="font-size:.72rem;color:var(--accent3);margin-top:.5rem;font-family:'JetBrains Mono',monospace;">Examples: E-commerce (orders write, catalog read), banking ledger</div>
+      </div>
+
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--accent);margin-bottom:.5rem;">PATTERN 12 · RESILIENCY</div>
+        <div style="font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:.4rem;">Circuit Breaker + Bulkhead + Retry</div>
+        <div style="font-size:.78rem;color:var(--muted);line-height:1.6;">Circuit breaker: open on failure threshold → fail fast, don't cascade. Bulkhead: isolate thread pools per dependency — one slow service can't exhaust all threads. Retry with exponential backoff + jitter. Timeout on every external call. Fallback: degraded response instead of error.</div>
+        <div style="font-size:.72rem;color:var(--accent3);margin-top:.5rem;font-family:'JetBrains Mono',monospace;">Examples: Netflix Hystrix, Resilience4j, AWS SDK retry logic</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HOW TO APPROACH ANY DESIGN QUESTION -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;margin-bottom:1.5rem;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent4, #fbbf24);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1.5rem;">▸ UNIVERSAL APPROACH — ANY DESIGN QUESTION IN 45 MINUTES</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+      <div>
+        <div style="font-size:.83rem;color:var(--muted);line-height:1.9;display:flex;flex-direction:column;gap:.4rem;">
+          <div style="display:flex;gap:.75rem;align-items:flex-start;"><span style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:#fbbf24;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2);padding:.15rem .5rem;border-radius:3px;white-space:nowrap;margin-top:.1rem;">MIN 0–5</span><div><strong style="color:var(--text);">Clarify — Ask before drawing.</strong> Scale (DAU, req/sec), read vs write ratio, latency SLA, consistency needs, global vs single region, mobile vs web.</div></div>
+          <div style="display:flex;gap:.75rem;align-items:flex-start;"><span style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:#fbbf24;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2);padding:.15rem .5rem;border-radius:3px;white-space:nowrap;margin-top:.1rem;">MIN 5–10</span><div><strong style="color:var(--text);">Estimate — Back of envelope.</strong> QPS, storage per year, bandwidth. Identify the bottleneck: is it read-heavy, write-heavy, compute-heavy, or storage-heavy?</div></div>
+          <div style="display:flex;gap:.75rem;align-items:flex-start;"><span style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:#fbbf24;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2);padding:.15rem .5rem;border-radius:3px;white-space:nowrap;margin-top:.1rem;">MIN 10–20</span><div><strong style="color:var(--text);">HLD — APIs + core data flow.</strong> Draw the 5-layer diagram. Define 2-3 key APIs. Identify which pattern (above) this maps to.</div></div>
+          <div style="display:flex;gap:.75rem;align-items:flex-start;"><span style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:#fbbf24;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2);padding:.15rem .5rem;border-radius:3px;white-space:nowrap;margin-top:.1rem;">MIN 20–35</span><div><strong style="color:var(--text);">Deep dive — Pick the hardest component.</strong> Go deep on: data model, sharding strategy, consistency model, the single thing that could bring the system down.</div></div>
+          <div style="display:flex;gap:.75rem;align-items:flex-start;"><span style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:#fbbf24;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2);padding:.15rem .5rem;border-radius:3px;white-space:nowrap;margin-top:.1rem;">MIN 35–45</span><div><strong style="color:var(--text);">Trade-offs + bottlenecks.</strong> Proactively name limitations. "One weakness here is..." shows intellectual honesty. End with: "What should I go deeper on?"</div></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;margin-bottom:.75rem;">Questions That Unlock the Right Pattern</div>
+        <div style="font-size:.82rem;color:var(--muted);line-height:1.8;display:flex;flex-direction:column;gap:.3rem;">
+          <div style="padding:.4rem .6rem;background:rgba(0,0,0,0.2);border-radius:4px;">Is it <strong style="color:var(--text);">read-heavy</strong>? → Cache-aside, read replicas, CDN</div>
+          <div style="padding:.4rem .6rem;background:rgba(0,0,0,0.2);border-radius:4px;">Is it <strong style="color:var(--text);">write-heavy</strong>? → Queue + async, LSM-tree DB, sharding</div>
+          <div style="padding:.4rem .6rem;background:rgba(0,0,0,0.2);border-radius:4px;">Does it need <strong style="color:var(--text);">real-time push</strong>? → WebSocket + pub-sub</div>
+          <div style="padding:.4rem .6rem;background:rgba(0,0,0,0.2);border-radius:4px;">Does it span <strong style="color:var(--text);">multiple services</strong>? → Saga + Outbox</div>
+          <div style="padding:.4rem .6rem;background:rgba(0,0,0,0.2);border-radius:4px;">Does it need <strong style="color:var(--text);">full-text search</strong>? → ES sync + inverted index</div>
+          <div style="padding:.4rem .6rem;background:rgba(0,0,0,0.2);border-radius:4px;">Does it need <strong style="color:var(--text);">location queries</strong>? → Geohash + spatial index</div>
+          <div style="padding:.4rem .6rem;background:rgba(0,0,0,0.2);border-radius:4px;">Does it need <strong style="color:var(--text);">global low latency</strong>? → CDN + GeoDNS + multi-region</div>
+          <div style="padding:.4rem .6rem;background:rgba(0,0,0,0.2);border-radius:4px;">Does it need <strong style="color:var(--text);">separate read/write models</strong>? → CQRS</div>
+          <div style="padding:.4rem .6rem;background:rgba(0,0,0,0.2);border-radius:4px;">Does it need <strong style="color:var(--text);">to be resilient</strong>? → Circuit breaker + bulkhead</div>
+          <div style="padding:.4rem .6rem;background:rgba(0,0,0,0.2);border-radius:4px;">Does it need <strong style="color:var(--text);">unique IDs at scale</strong>? → Snowflake ID / UUID v7</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <main>
