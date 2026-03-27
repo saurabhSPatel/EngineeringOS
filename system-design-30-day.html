@@ -377,17 +377,17 @@ Object Store (S3) · CDN</div>
 
 <main>
 
-<!-- WEEK 1: FOUNDATIONS -->
+<!-- ═══════════════════════ WEEK 1 ═══════════════════════ -->
 <div class="week-header" id="week1">
   <span class="week-num">WEEK 01</span>
-  <span class="week-title">Foundations — Scaling, Caching, Networking, CAP</span>
+  <span class="week-title">Foundations — Scaling, Caching, API Design, CAP</span>
   <span class="week-theme">FIRST PRINCIPLES</span>
 </div>
 
 <div class="day-card">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge">DAY 01</span>
-    <span class="day-name">Scaling Fundamentals — Vertical vs Horizontal</span>
+    <span class="day-name">Scaling Fundamentals — Vertical, Horizontal, Scale Cube</span>
     <span class="day-type">Concept</span>
     <span class="day-toggle">▼</span>
   </div>
@@ -396,24 +396,32 @@ Object Store (S3) · CDN</div>
       <div class="info-block">
         <h4>Core Concepts</h4>
         <ul>
-          <li>Vertical scaling: limits, SPOF, no code change</li>
-          <li>Horizontal scaling: stateless requirement, complexity</li>
-          <li>Stateless vs stateful services: session handling</li>
-          <li>Scale cube: X (clone), Y (decompose), Z (shard)</li>
+          <li><strong>Vertical scaling:</strong> add CPU/RAM to one machine. Simple, no code change. Hard ceiling ~96 cores. SPOF.</li>
+          <li><strong>Horizontal scaling:</strong> add more machines. Requires stateless design, service discovery, load balancing.</li>
+          <li><strong>Stateless services:</strong> no local session — store state in Redis/DB so any instance can serve any request.</li>
+          <li><strong>Scale Cube (AKF):</strong> X=clone (horizontal), Y=functional decompose (microservices), Z=data partition (sharding)</li>
+          <li><strong>Bottleneck first:</strong> before scaling, profile — CPU, memory, I/O, or network? Scale the actual bottleneck.</li>
         </ul>
       </div>
       <div class="info-block">
-        <h4>Real-World System</h4>
-        <p>Your CBDC platform: why Go microservices (stateless, horizontal) beat a monolith for Hyperledger Fabric nodes that need independent scaling per participant bank.</p>
+        <h4>When to Scale What</h4>
+        <ul>
+          <li>CPU bound → vertical first, then horizontal with load balancer</li>
+          <li>Memory bound → vertical or offload to Redis/external cache</li>
+          <li>I/O bound → read replicas, caching, async processing</li>
+          <li>Network bound → CDN, edge caching, compression</li>
+          <li>DB bound → connection pooling, read replicas, sharding</li>
+          <li>Stateful service → externalize state first, then scale horizontally</li>
+        </ul>
       </div>
     </div>
     <div class="tradeoff-box">
-      <h4>Trade-offs to Articulate</h4>
-      <p>Vertical: fast, cheap ops, but hard ceiling ~96-core machines. Horizontal: theoretically infinite, but requires service discovery, consistent hashing, session externalization, distributed state. CAP implications change when you go horizontal.</p>
+      <h4>Key Trade-offs</h4>
+      <p>Vertical: operationally simple, no distributed system complexity, but hard ceiling and SPOF. Horizontal: theoretically unlimited, fault tolerant, but requires distributed consensus, session externalization, consistent hashing for data locality. Most production systems do both: vertical for the database, horizontal for stateless API tiers.</p>
     </div>
     <div class="interview-tip">
       <h4>Interview Approach</h4>
-      <p>When asked "how do you scale X?": first identify the bottleneck (CPU/memory/IO/network), then choose axis. Don't say "add more servers" — say "I'd scale the stateless API tier horizontally behind a load balancer, while keeping the database vertical + read replicas initially."</p>
+      <p>When asked "how do you scale X?": first identify the bottleneck. Don't say "add more servers" — say "I'd first profile to identify whether we're CPU, memory, or I/O bound. For the stateless API tier I'd scale horizontally behind an ALB. For the database I'd start with read replicas and connection pooling, escalating to sharding only when reads on replicas saturate."</p>
     </div>
   </div>
 </div>
@@ -421,35 +429,39 @@ Object Store (S3) · CDN</div>
 <div class="day-card">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge">DAY 02</span>
-    <span class="day-name">Load Balancing — Algorithms & Layers</span>
+    <span class="day-name">Load Balancing — Algorithms, Layers, Health Checks</span>
     <span class="day-type">Infra</span>
     <span class="day-toggle">▼</span>
   </div>
   <div class="day-body">
     <div class="grid2">
       <div class="info-block">
-        <h4>Core Concepts</h4>
+        <h4>L4 vs L7 Load Balancing</h4>
         <ul>
-          <li>L4 (TCP) vs L7 (HTTP) load balancing</li>
-          <li>Algorithms: Round Robin, Least Connections, IP Hash, Consistent Hashing</li>
-          <li>Health checks: active vs passive</li>
-          <li>Session affinity (sticky sessions) — when to avoid</li>
-          <li>Anycast for global load balancing</li>
+          <li><strong>L4 (Transport):</strong> routes by IP + TCP port, no packet inspection — fastest, no TLS termination</li>
+          <li><strong>L7 (Application):</strong> routes by HTTP headers, path, cookie — enables path-based routing, A/B testing, auth</li>
+          <li>AWS NLB = L4. AWS ALB = L7. HAProxy does both. Nginx = L7 (can do L4 with stream module).</li>
+          <li><strong>TLS termination at LB:</strong> offloads crypto from app servers, enables header inspection</li>
         </ul>
       </div>
       <div class="info-block">
-        <h4>Real System: Nginx/HAProxy vs AWS ALB</h4>
+        <h4>Algorithms</h4>
         <ul>
-          <li>L7 ALB: path-based routing for microservices</li>
-          <li>Weighted routing for canary deployments</li>
-          <li>Connection draining for zero-downtime deploys</li>
-          <li>Your Helm deployments already use K8s Services (kube-proxy = software LB)</li>
+          <li><strong>Round Robin:</strong> simple, equal distribution. Bad if requests vary in cost.</li>
+          <li><strong>Least Connections:</strong> send to server with fewest active connections. Best for variable-cost requests.</li>
+          <li><strong>IP Hash:</strong> same client → same server (sticky). Breaks with proxies/NAT.</li>
+          <li><strong>Consistent Hashing:</strong> minimize reshuffling when servers added/removed. Best for cache locality.</li>
+          <li><strong>Weighted:</strong> canary deployments — send 5% to new version.</li>
         </ul>
       </div>
     </div>
     <div class="tradeoff-box">
-      <h4>Trade-offs</h4>
-      <p>Consistent hashing LB: minimizes cache misses when scaling (same key → same server). But IP Hash breaks when clients use proxies (all appear as single IP). Least-connections beats round-robin for variable request costs (long-running jobs).</p>
+      <h4>Health Checks + Connection Draining</h4>
+      <p>Active health checks: LB polls /health endpoint every 5s. Passive: detect failures from response codes. Connection draining: when removing a server, LB stops sending new connections but lets in-flight requests finish (30–60s grace period). Critical for zero-downtime deployments.</p>
+    </div>
+    <div class="interview-tip">
+      <h4>Common Interview Gotcha</h4>
+      <p>Sticky sessions (session affinity) break horizontal scaling — if a server dies, all its sessions are lost. The correct answer: externalize sessions to Redis, make the service stateless, and use round-robin or least-connections. Only use sticky sessions when you can't externalize state (legacy systems).</p>
     </div>
   </div>
 </div>
@@ -457,7 +469,7 @@ Object Store (S3) · CDN</div>
 <div class="day-card">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge">DAY 03</span>
-    <span class="day-name">Caching — Strategies, Invalidation, Redis Deep</span>
+    <span class="day-name">Caching — Strategies, Invalidation, Redis Internals</span>
     <span class="day-type">Caching</span>
     <span class="day-toggle">▼</span>
   </div>
@@ -466,25 +478,33 @@ Object Store (S3) · CDN</div>
       <div class="info-block">
         <h4>Caching Strategies</h4>
         <ul>
-          <li><strong>Cache-aside (Lazy):</strong> app checks cache, miss → DB, populate cache</li>
-          <li><strong>Write-through:</strong> write to cache + DB synchronously</li>
-          <li><strong>Write-behind:</strong> write to cache, async flush to DB</li>
-          <li><strong>Read-through:</strong> cache loads from DB on miss</li>
-          <li>TTL vs event-based invalidation</li>
+          <li><strong>Cache-aside (Lazy):</strong> app checks cache first → miss → read DB → populate cache. Most common.</li>
+          <li><strong>Read-through:</strong> cache fetches from DB on miss automatically. App only talks to cache.</li>
+          <li><strong>Write-through:</strong> write to cache AND DB synchronously. Consistent, but doubles write latency.</li>
+          <li><strong>Write-behind (Write-back):</strong> write to cache only, flush to DB async. Fast writes, risk of data loss on crash.</li>
+          <li><strong>Refresh-ahead:</strong> proactively refresh cache before TTL expires on popular keys.</li>
         </ul>
       </div>
       <div class="info-block">
-        <h4>Your Redis Experience Mapped</h4>
-        <p>80% DB load reduction you achieved = cache-aside pattern. Key design: <code>forex:rate:{USD}:{EUR}:{timestamp_bucket}</code> — time-bucketed TTL. Stampede prevention: probabilistic early expiration or distributed lock (Redis SET NX PX).</p>
+        <h4>Redis Data Structures</h4>
+        <ul>
+          <li><strong>String:</strong> counters, session tokens, simple cache values</li>
+          <li><strong>Hash:</strong> user profile fields — partial updates without fetching all</li>
+          <li><strong>List:</strong> message queues, activity feeds (LPUSH/RPOP)</li>
+          <li><strong>Set:</strong> unique visitors, tags, friend lists (union/intersection)</li>
+          <li><strong>Sorted Set (ZSET):</strong> leaderboards, rate limiting, priority queues</li>
+          <li><strong>HyperLogLog:</strong> approximate unique count — 12KB for billions of items</li>
+          <li><strong>Streams:</strong> durable event log — lighter-weight Kafka alternative</li>
+        </ul>
       </div>
     </div>
     <div class="tradeoff-box">
-      <h4>Cache Invalidation — "Hardest Problem in CS"</h4>
-      <p>Write-through: consistency but write latency doubles. Write-behind: fast writes but data loss risk on cache crash. Cache-aside: stale reads possible (use short TTL). Event-driven invalidation via Kafka (your expertise): write → publish event → consumers invalidate specific keys. Most consistent approach.</p>
+      <h4>Cache Invalidation — "Two Hard Problems"</h4>
+      <p>TTL-based: simple, eventual consistency acceptable. Event-driven: write → Kafka event → cache invalidation consumers. More consistent but complex. Versioned keys: <code>user:42:v3</code> — change version on update, old key orphans and expires. Cache stampede (thundering herd): many requests miss simultaneously and hammer DB. Solutions: mutex lock (only one request rebuilds), probabilistic early expiry (PER algorithm), request coalescing.</p>
     </div>
     <div class="interview-tip">
-      <h4>Senior-Level Points</h4>
-      <p>Mention: Cache stampede (thundering herd), dog-pile effect. Solutions: mutex lock, probabilistic early refresh, request coalescing. Also discuss: hot keys, cache warming, multilevel caching (L1=local in-process, L2=Redis, L3=DB).</p>
+      <h4>Multilevel Caching</h4>
+      <p>L1 = in-process memory (microseconds, limited size, per-instance). L2 = Redis cluster (milliseconds, shared, bounded). L3 = DB read replica. Mention hot keys: a single extremely popular key (celebrity post) can overwhelm one Redis shard — solutions: local replica per app server, key sharding by appending suffix.</p>
     </div>
   </div>
 </div>
@@ -492,7 +512,7 @@ Object Store (S3) · CDN</div>
 <div class="day-card">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge">DAY 04</span>
-    <span class="day-name">CAP Theorem + Consistency Models</span>
+    <span class="day-name">CAP Theorem + Consistency Models + PACELC</span>
     <span class="day-type">Theory</span>
     <span class="day-toggle">▼</span>
   </div>
@@ -501,31 +521,33 @@ Object Store (S3) · CDN</div>
       <div class="info-block">
         <h4>CAP Theorem</h4>
         <ul>
-          <li>Consistency: all nodes see same data simultaneously</li>
-          <li>Availability: every request gets a response</li>
-          <li>Partition Tolerance: system works despite network splits</li>
-          <li>Reality: P always occurs in distributed systems → choose C or A</li>
-          <li>PACELC extends CAP: latency vs consistency tradeoff even without partition</li>
+          <li><strong>Consistency:</strong> every read sees the most recent write</li>
+          <li><strong>Availability:</strong> every request gets a (non-error) response</li>
+          <li><strong>Partition Tolerance:</strong> system continues despite network splits</li>
+          <li>Reality: P always occurs in distributed systems → choose C or A during partition</li>
+          <li><strong>CP systems:</strong> HBase, ZooKeeper, etcd, MongoDB (strong mode)</li>
+          <li><strong>AP systems:</strong> Cassandra, DynamoDB, CouchDB, Redis (default)</li>
         </ul>
       </div>
       <div class="info-block">
         <h4>Consistency Models (Spectrum)</h4>
         <ul>
-          <li><strong>Strong:</strong> linearizability (single node illusion)</li>
-          <li><strong>Sequential:</strong> operations ordered consistently</li>
-          <li><strong>Causal:</strong> causally related ops in order</li>
-          <li><strong>Eventual:</strong> all nodes converge eventually</li>
-          <li><strong>Read-your-writes:</strong> session consistency</li>
+          <li><strong>Linearizability:</strong> single-node illusion — reads always see latest write</li>
+          <li><strong>Sequential:</strong> all ops appear in some consistent order</li>
+          <li><strong>Causal:</strong> causally related operations appear in order</li>
+          <li><strong>Read-your-writes:</strong> you always see your own writes (session)</li>
+          <li><strong>Monotonic reads:</strong> once you read a value, you won't see older values</li>
+          <li><strong>Eventual:</strong> all replicas converge if no new writes — lowest consistency</li>
         </ul>
       </div>
     </div>
     <div class="tradeoff-box">
-      <h4>Real Mapping to Systems</h4>
-      <p>Hyperledger Fabric (your work): CP system — consensus before commit, sacrifices availability during partition. Redis (your work): AP by default with async replication, eventual consistency. Your CBDC forex settlement: needed strong consistency for double-spend prevention → chose CP, accepted availability hit.</p>
+      <h4>PACELC — More Practical Than CAP</h4>
+      <p>PACELC extends CAP: "If Partition (P), choose between Availability (A) and Consistency (C). Else (E) — even without partition — choose between Latency (L) and Consistency (C)." Most distributed systems trade off latency vs consistency ALL the time, not just during partitions. DynamoDB: PA/EL (available, low latency). Spanner: PC/EC (consistent, higher latency). Understanding PACELC shows deeper distributed systems thinking.</p>
     </div>
     <div class="interview-tip">
       <h4>Interview Signal</h4>
-      <p>Never say "I'd use CAP theorem" — say "Given the partition tolerance requirement, I need to choose between consistency and availability. For payment systems like this CBDC, I'd choose CP — a failed transaction is better than a duplicate credit." This is Staff-level thinking.</p>
+      <p>Never just say "I'd use CAP theorem." Say: "For a payment system, I need CP — a failed transaction is better than a duplicate credit. I'd accept reduced availability during network partitions and use circuit breakers to fail fast. For a social media feed, AP is fine — showing a slightly stale post is acceptable, and I'd use eventual consistency with short TTLs."</p>
     </div>
   </div>
 </div>
@@ -533,38 +555,45 @@ Object Store (S3) · CDN</div>
 <div class="day-card">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge">DAY 05</span>
-    <span class="day-name">Rate Limiting — Token Bucket, Leaky Bucket, Sliding Log</span>
+    <span class="day-name">Rate Limiting — Algorithms, Distributed Implementation</span>
     <span class="day-type">Resilience</span>
     <span class="day-toggle">▼</span>
   </div>
   <div class="day-body">
     <div class="grid2">
       <div class="info-block">
-        <h4>Algorithms</h4>
+        <h4>Algorithms Compared</h4>
         <ul>
-          <li><strong>Fixed Window:</strong> simple, burst at boundaries</li>
-          <li><strong>Sliding Window Log:</strong> accurate, memory heavy</li>
-          <li><strong>Sliding Window Counter:</strong> approximation, memory efficient</li>
-          <li><strong>Token Bucket:</strong> allows bursts, smooth long-term rate</li>
-          <li><strong>Leaky Bucket:</strong> constant output rate, queue fills</li>
+          <li><strong>Fixed Window:</strong> count resets at interval boundary. Simple. Burst attack possible at boundary edges.</li>
+          <li><strong>Sliding Window Log:</strong> log timestamps of each request in Redis sorted set. Precise. Memory = O(requests in window).</li>
+          <li><strong>Sliding Window Counter:</strong> interpolate between current and previous window counts. Memory efficient, ~0.003% error rate.</li>
+          <li><strong>Token Bucket:</strong> bucket refills at rate R, max burst = bucket size. Allows controlled bursting. AWS API Gateway uses this.</li>
+          <li><strong>Leaky Bucket:</strong> requests queued, processed at constant rate. Smooths traffic. Queue fills under burst — requests dropped.</li>
         </ul>
       </div>
       <div class="info-block">
         <h4>Distributed Rate Limiting</h4>
         <ul>
-          <li>Redis INCR + EXPIRE for fixed window</li>
-          <li>Redis Lua scripts for atomicity</li>
-          <li>Sliding window with Redis sorted sets</li>
-          <li>Gossip-based eventual rate limiting</li>
-          <li>Kong/Nginx rate limit middleware</li>
+          <li>Single Redis node: atomic Lua script — INCR + EXPIRE in one round-trip</li>
+          <li>Redis Cluster: consistent hash user_id to shard — same user always hits same node</li>
+          <li>Sliding window with ZSET: ZADD + ZREMRANGEBYSCORE + ZCARD atomically</li>
+          <li>Response headers: <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code>, <code>Retry-After</code></li>
+          <li>Return HTTP 429 Too Many Requests with Retry-After header</li>
+          <li>Different limits by tier: free (100/min), pro (1000/min), enterprise (unlimited)</li>
         </ul>
       </div>
     </div>
     <div class="sys-diagram">
-Client → [API Gateway] → Redis (rate_key = user:endpoint:window_bucket)<br>
-<span>MULTI → INCR key → EXPIRE key 60 → EXEC</span><br>
-if count > limit: return 429 + Retry-After header<br>
-else: forward to service
+<span>Distributed Rate Limiter Architecture:</span>
+Client → [API Gateway] → [Rate Limiter Middleware]
+                                   ↓
+                    [Redis Cluster — keyed by user_id:endpoint:window]
+                    MULTI
+                      INCR  rate:user123:POST/api/v1/posts:1706745600
+                      EXPIRE rate:user123:POST/api/v1/posts:1706745600 60
+                    EXEC
+                    if count > limit → return 429 + Retry-After: 47
+                    else → forward to service
     </div>
   </div>
 </div>
@@ -572,7 +601,7 @@ else: forward to service
 <div class="day-card">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge">DAY 06</span>
-    <span class="day-name">CDN, DNS, Proxies — Request Flow</span>
+    <span class="day-name">CDN, DNS, Proxies — Full Request Flow</span>
     <span class="day-type">Networking</span>
     <span class="day-toggle">▼</span>
   </div>
@@ -581,26 +610,165 @@ else: forward to service
       <div class="info-block">
         <h4>CDN Internals</h4>
         <ul>
-          <li>Edge PoPs: geographically distributed cache nodes</li>
-          <li>Cache-Control headers govern CDN caching</li>
-          <li>Push vs Pull CDN models</li>
-          <li>Origin shield: single origin fetch, multi-edge serve</li>
-          <li>Cache invalidation: URL versioning vs API purge</li>
+          <li><strong>Edge PoPs:</strong> globally distributed cache nodes — serve content from nearest geography</li>
+          <li><strong>Cache-Control headers:</strong> <code>public, max-age=86400</code> tells CDN to cache for 1 day</li>
+          <li><strong>Pull CDN:</strong> first request goes to origin, CDN caches response. Most common.</li>
+          <li><strong>Push CDN:</strong> upload assets proactively to CDN edge nodes. Better for static files that don't change.</li>
+          <li><strong>Origin Shield:</strong> intermediate layer between CDN edges and origin — collapses cache misses from multiple PoPs into one origin request. Reduces origin load ~90%.</li>
+          <li><strong>Cache invalidation:</strong> URL versioning (<code>app.v3.js</code>) or API purge (CDN purge API on deploy).</li>
         </ul>
       </div>
       <div class="info-block">
-        <h4>DNS Deep Dive</h4>
+        <h4>DNS + Proxies</h4>
         <ul>
-          <li>Recursive vs authoritative resolvers</li>
-          <li>TTL strategy for blue-green deployments</li>
-          <li>GeoDNS for traffic routing</li>
-          <li>DNS-based load balancing: Route53 weighted routing</li>
+          <li><strong>DNS resolution chain:</strong> Browser cache → OS cache → Recursive resolver → Root NS → TLD NS → Authoritative NS</li>
+          <li><strong>TTL strategy:</strong> low TTL (60s) before blue-green switch, high TTL (3600s) normal operation</li>
+          <li><strong>GeoDNS:</strong> return different IP based on client region — Route53 latency-based routing</li>
+          <li><strong>Forward proxy:</strong> client-side (corp proxy, VPN) — client knows about it</li>
+          <li><strong>Reverse proxy:</strong> server-side (Nginx, Cloudflare) — client doesn't know</li>
+          <li><strong>API Gateway:</strong> reverse proxy + auth + rate limiting + routing + observability</li>
         </ul>
       </div>
     </div>
     <div class="interview-tip">
-      <h4>Full Request Flow (Memorize This)</h4>
-      <p>Client → DNS (TTL cache miss → recursive resolver → authoritative) → CDN edge (cache hit → return) → [cache miss] → Load Balancer → API Gateway (auth, rate limit) → Service → Cache (hit) or DB. Know latency at each hop: DNS ~30ms, CDN hit ~5ms, DB query ~5-20ms.</p>
+      <h4>Full Request Flow — Memorize This</h4>
+      <p>Client → DNS lookup (~30ms first time, cached after) → CDN edge (cache HIT → ~5ms, done). If MISS → Load Balancer (~1ms) → API Gateway (auth, rate limit, ~5ms) → Service → Cache check (Redis HIT ~1ms, done). If MISS → Database query (~5–20ms) → populate cache → respond. Total p50: 50–100ms. p99 bottleneck is almost always the DB or a missing cache layer.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ DAY 07: API DESIGN — NEW ═══════ -->
+<div class="day-card">
+  <div class="day-header" onclick="toggle(this)">
+    <span class="day-num-badge">DAY 07</span>
+    <span class="day-name">API Design — REST, GraphQL, gRPC, WebSocket, Best Practices</span>
+    <span class="day-type">API Design</span>
+    <span class="day-toggle">▼</span>
+  </div>
+  <div class="day-body">
+
+    <div class="grid2">
+      <div class="info-block">
+        <h4>REST — Principles & Best Practices</h4>
+        <ul>
+          <li><strong>Resource-based URLs:</strong> nouns not verbs — <code>/users/42/orders</code> not <code>/getUserOrders</code></li>
+          <li><strong>HTTP verbs:</strong> GET (read), POST (create), PUT (replace), PATCH (partial update), DELETE (remove)</li>
+          <li><strong>Status codes:</strong> 200 OK, 201 Created, 204 No Content, 400 Bad Request, 401 Unauth, 403 Forbidden, 404 Not Found, 409 Conflict, 422 Unprocessable, 429 Too Many, 500 Server Error</li>
+          <li><strong>Idempotency:</strong> GET/PUT/DELETE are idempotent. POST is not. Use idempotency keys for POST payments.</li>
+          <li><strong>HATEOAS:</strong> responses include links to related actions — reduces client coupling</li>
+        </ul>
+      </div>
+      <div class="info-block">
+        <h4>GraphQL vs REST vs gRPC</h4>
+        <ul>
+          <li><strong>REST:</strong> simple, cacheable, universal client support. Overfetch/underfetch problem.</li>
+          <li><strong>GraphQL:</strong> client specifies exact fields needed — eliminates over/under-fetch. Single endpoint. Complex queries, no HTTP caching by default. Best for: frontend-heavy apps, mobile (save bandwidth), multiple clients with different data needs.</li>
+          <li><strong>gRPC:</strong> binary protocol (Protobuf), strongly typed, bidirectional streaming, HTTP/2. 5-10x faster than REST/JSON. Best for: internal microservice-to-microservice, streaming data, polyglot services.</li>
+          <li><strong>WebSocket:</strong> persistent full-duplex. Use when server must push to client in real time.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sys-diagram">
+<span>REST API Design — URL Structure</span>
+GET    /api/v1/users              → list users (paginated)
+POST   /api/v1/users              → create user
+GET    /api/v1/users/{id}         → get user by ID
+PATCH  /api/v1/users/{id}         → partial update
+DELETE /api/v1/users/{id}         → delete user
+GET    /api/v1/users/{id}/orders  → get user's orders (nested resource)
+POST   /api/v1/orders             → create order
+GET    /api/v1/orders?status=pending&limit=20&cursor=abc123  → filtered + paginated
+
+<span>Pagination strategies:</span>
+Offset: ?page=2&limit=20       → simple but inconsistent on inserts/deletes
+Cursor: ?cursor=eyJpZCI6NDJ9   → stable, works with real-time data changes
+Keyset: ?after_id=42&limit=20  → fast for indexed columns, no skip
+    </div>
+
+    <div class="grid2">
+      <div class="info-block">
+        <h4>API Versioning Strategies</h4>
+        <ul>
+          <li><strong>URL versioning:</strong> <code>/api/v1/users</code> — most visible, easy to route. Industry default.</li>
+          <li><strong>Header versioning:</strong> <code>Accept: application/vnd.api+json;version=2</code> — cleaner URLs, harder to test in browser</li>
+          <li><strong>Query param:</strong> <code>/api/users?version=2</code> — simple but pollutes query space</li>
+          <li>Never break existing clients — add fields, never remove/rename</li>
+          <li>Deprecation: return <code>Sunset</code> header with deprecation date</li>
+          <li>Maintain N-1 versions minimum. Remove after migration period.</li>
+        </ul>
+      </div>
+      <div class="info-block">
+        <h4>Idempotency & Safety</h4>
+        <ul>
+          <li><strong>Idempotency key:</strong> client sends unique key with POST request (UUID)</li>
+          <li>Server caches response keyed by idempotency key for 24h</li>
+          <li>On retry: return cached response — no duplicate charge/order</li>
+          <li>Stripe, PayPal, Braintree all use this pattern for payments</li>
+          <li>Key header: <code>Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000</code></li>
+          <li>Store key → response in Redis with TTL. Check before processing.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="info-block">
+        <h4>API Authentication & Authorization</h4>
+        <ul>
+          <li><strong>API Key:</strong> simple, server-side secret. No expiry mechanism. Best for server-to-server.</li>
+          <li><strong>JWT (Bearer token):</strong> stateless, self-contained claims. Verify signature without DB call. Short expiry (15min) + refresh token (7 days).</li>
+          <li><strong>OAuth 2.0:</strong> delegated authorization. User grants app access to their data on another service. Authorization Code flow for web, PKCE for mobile/SPA.</li>
+          <li><strong>mTLS:</strong> mutual TLS — both client and server present certificates. For internal service-to-service in zero-trust networks.</li>
+          <li><strong>HMAC signatures:</strong> sign request body with shared secret — webhooks, S3 presigned URLs.</li>
+        </ul>
+      </div>
+      <div class="info-block">
+        <h4>API Error Design</h4>
+        <ul>
+          <li>Return structured errors — not just HTTP status code</li>
+          <li>Include: error code (machine-readable), message (human), details array, request_id for tracing</li>
+          <li>Never expose stack traces or internal DB errors to clients</li>
+          <li>Use RFC 7807 Problem Details standard for REST APIs</li>
+          <li>Consistent envelope: <code>{"error":{"code":"RATE_LIMITED","message":"...","retry_after":47}}</code></li>
+          <li>Distinguish client errors (4xx) from server errors (5xx) — client errors are caller's fault</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sys-diagram">
+<span>gRPC Service Definition (Protobuf):</span>
+syntax = "proto3";
+
+service UserService {
+  rpc GetUser(GetUserRequest) returns (User);                      // unary
+  rpc ListUsers(ListUsersRequest) returns (stream User);           // server streaming
+  rpc CreateUsers(stream CreateUserRequest) returns (BatchResult); // client streaming
+  rpc Chat(stream ChatMessage) returns (stream ChatMessage);       // bidirectional
+}
+
+message User {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+<span>// gRPC: HTTP/2 + Protobuf = 5-10x faster than REST/JSON
+// Auto-generates client/server code in Go, Java, Python, Rust, etc.
+// Use for: internal microservices. REST for: public APIs.</span>
+    </div>
+
+    <div class="tradeoff-box">
+      <h4>API Design Decision Framework</h4>
+      <p><strong>Public API or 3rd party developers?</strong> → REST. Universally understood, easy to test with curl, HTTP caching works naturally.<br>
+      <strong>Mobile app with bandwidth concerns?</strong> → GraphQL. Client specifies exactly what fields it needs — no over-fetching.<br>
+      <strong>Internal microservices, high throughput?</strong> → gRPC. Binary protocol, streaming support, strongly typed contracts catch breaking changes at compile time.<br>
+      <strong>Real-time bidirectional?</strong> → WebSocket (full-duplex persistent) or SSE (server-push only, simpler).<br>
+      <strong>Multiple frontend clients (web, mobile, IoT) with different data needs?</strong> → GraphQL with a BFF (Backend for Frontend) layer.</p>
+    </div>
+
+    <div class="interview-tip">
+      <h4>API Design Interview Tips</h4>
+      <p>Always define the API before drawing the architecture. Walk through: (1) What are the key resources? (2) What operations does each resource support? (3) What are the access patterns — who calls what, how often? (4) What are the consistency requirements for each endpoint? Showing API-first thinking is a strong signal — it means you think about contracts and client usability, not just internal implementation.</p>
     </div>
   </div>
 </div>
@@ -608,14 +776,15 @@ else: forward to service
 <div class="checkpoint-card">
   <h3>🎯 Week 1 Checkpoint</h3>
   <ul>
-    <li>Draw full request flow from client to DB from memory</li>
-    <li>Explain CAP using your CBDC system as example — which guarantees did you actually make?</li>
-    <li>Design a rate limiter for 10K RPS without looking at notes</li>
-    <li>Explain cache invalidation strategies and when each breaks</li>
+    <li>Draw the full request flow (Client → CDN → LB → Gateway → Service → Cache → DB) from memory with latency at each hop</li>
+    <li>Design a REST API for a ride-booking app — define 5 endpoints with correct verbs, status codes, and pagination</li>
+    <li>Explain when you'd choose gRPC over REST and vice versa</li>
+    <li>Design a distributed rate limiter for 50K RPS — which algorithm and why?</li>
+    <li>Given a payment system, which CAP trade-off do you make and why?</li>
   </ul>
 </div>
 
-<!-- WEEK 2: STORAGE -->
+<!-- ═══════════════════════ WEEK 2 ═══════════════════════ -->
 <div class="week-header" id="week2">
   <span class="week-num">WEEK 02</span>
   <span class="week-title">Storage Deep Dives — SQL, NoSQL, Sharding, Replication</span>
@@ -625,7 +794,7 @@ else: forward to service
 <div class="day-card">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge">DAY 08</span>
-    <span class="day-name">SQL vs NoSQL — When to Choose What</span>
+    <span class="day-name">SQL vs NoSQL — Decision Framework</span>
     <span class="day-type">Storage</span>
     <span class="day-toggle">▼</span>
   </div>
@@ -634,26 +803,28 @@ else: forward to service
       <div class="info-block">
         <h4>SQL Strengths</h4>
         <ul>
-          <li>ACID transactions (your CBDC payment system)</li>
-          <li>Complex joins, aggregations</li>
-          <li>Schema enforcement = data integrity</li>
-          <li>Mature tooling, EXPLAIN plans, indexes</li>
-          <li>Best for: financial systems, ERP, anything relational</li>
+          <li>ACID transactions — critical for financial systems, inventory, reservations</li>
+          <li>Complex joins and aggregations across normalized data</li>
+          <li>Schema enforcement = data integrity at DB level</li>
+          <li>Mature tooling: EXPLAIN plans, index advisors, migrations</li>
+          <li>Strong consistency by default</li>
+          <li>Best for: payments, e-commerce orders, user accounts, ERP, anything relational</li>
         </ul>
       </div>
       <div class="info-block">
         <h4>NoSQL Categories</h4>
         <ul>
-          <li><strong>Document (MongoDB):</strong> flexible schema, JSON nesting</li>
-          <li><strong>Key-Value (Redis/DynamoDB):</strong> O(1) access, simple</li>
-          <li><strong>Wide-Column (Cassandra):</strong> time-series, write-heavy</li>
-          <li><strong>Graph (Neo4j):</strong> relationship traversal</li>
+          <li><strong>Key-Value (Redis, DynamoDB):</strong> O(1) get/set, simple access patterns, no joins. Best for: sessions, cache, counters.</li>
+          <li><strong>Document (MongoDB, Firestore):</strong> flexible schema, nested JSON. Best for: catalogs, CMS, user profiles.</li>
+          <li><strong>Wide-Column (Cassandra, HBase):</strong> write-optimized LSM tree, massive scale, tunable consistency. Best for: time-series, IoT, audit logs.</li>
+          <li><strong>Graph (Neo4j, Amazon Neptune):</strong> relationship traversal. Best for: social networks, fraud detection, recommendations.</li>
+          <li><strong>Search (Elasticsearch, OpenSearch):</strong> inverted index, full-text + faceted search.</li>
         </ul>
       </div>
     </div>
     <div class="tradeoff-box">
-      <h4>Decision Framework for Interviews</h4>
-      <p>Ask yourself: (1) Do I need ACID multi-entity transactions? → SQL. (2) Do I need to query by multiple attributes with complex joins? → SQL. (3) Is write throughput >50K/s with simple access patterns? → Cassandra/DynamoDB. (4) Flexible schema, document-centric reads? → MongoDB. (5) Cache/session? → Redis. Don't say "I'd use MongoDB because it's flexible" — that's junior thinking.</p>
+      <h4>Decision Framework — Never "I'd use MongoDB because it's flexible"</h4>
+      <p>Ask: (1) Do I need multi-entity ACID transactions? → PostgreSQL. (2) Do I need complex multi-table joins? → SQL. (3) Is write throughput &gt; 50K/s with simple access patterns? → Cassandra/DynamoDB. (4) Flexible schema, document-centric reads, no complex joins? → MongoDB. (5) Cache or session? → Redis. (6) Full-text search? → Elasticsearch alongside primary DB. (7) Graph traversal? → Neo4j. The key signal: which queries will this DB serve, and can it serve them efficiently?</p>
     </div>
   </div>
 </div>
@@ -661,36 +832,38 @@ else: forward to service
 <div class="day-card">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge">DAY 09</span>
-    <span class="day-name">Database Internals — B-Tree, LSM, MVCC, WAL</span>
+    <span class="day-name">Database Internals — B-Tree, LSM Tree, MVCC, WAL</span>
     <span class="day-type">Internals</span>
     <span class="day-toggle">▼</span>
   </div>
   <div class="day-body">
     <div class="grid2">
       <div class="info-block">
-        <h4>B-Tree (PostgreSQL/MySQL)</h4>
+        <h4>B-Tree (PostgreSQL, MySQL)</h4>
         <ul>
-          <li>Balanced tree, O(log n) reads and writes</li>
-          <li>Good read/write mix workloads</li>
-          <li>Pages: typically 8KB, tuned for disk</li>
-          <li>Write amplification: updating internal nodes</li>
+          <li>Self-balancing tree, O(log n) reads and writes</li>
+          <li>Pages: typically 8KB, tuned for disk block size</li>
+          <li>Good for mixed read/write workloads</li>
+          <li>Random writes cause write amplification (update internal nodes)</li>
+          <li>In-place updates — good for read-heavy workloads</li>
         </ul>
       </div>
       <div class="info-block">
-        <h4>LSM Tree (RocksDB/Cassandra)</h4>
+        <h4>LSM Tree (Cassandra, RocksDB, LevelDB)</h4>
         <ul>
-          <li>Write to MemTable → flush to SSTable on disk</li>
-          <li>Compaction merges SSTables</li>
-          <li>O(1) writes (sequential), O(log n) reads</li>
-          <li>Write amplification during compaction</li>
-          <li>Bloom filters prevent unnecessary disk reads</li>
+          <li>Write to in-memory MemTable first — O(1) sequential write</li>
+          <li>MemTable flushed to immutable SSTable on disk when full</li>
+          <li>Compaction merges SSTables — removes tombstones, sorts keys</li>
+          <li>Bloom filter per SSTable: skip SSTables that don't contain key</li>
+          <li>O(1) writes, O(log n) reads. Better for write-heavy workloads.</li>
+          <li>Write amplification during compaction. Read amplification without bloom filter.</li>
         </ul>
       </div>
     </div>
     <div class="info-block" style="margin-top:.75rem;">
-      <h4>MVCC + WAL</h4>
-      <p style="margin-bottom:.5rem;"><strong>MVCC:</strong> Multiple readers, one writer. Each transaction sees snapshot. Old versions kept until no longer needed (vacuum). Enables non-blocking reads.</p>
-      <p><strong>WAL (Write-Ahead Log):</strong> Write to log first, then data pages. On crash: replay WAL for recovery. Also enables replication — ship WAL to replicas. PostgreSQL uses this for streaming replication.</p>
+      <h4>MVCC + WAL — How PostgreSQL Works</h4>
+      <p style="margin-bottom:.5rem;"><strong>MVCC (Multi-Version Concurrency Control):</strong> each write creates a new row version with a transaction timestamp. Readers see a snapshot at their transaction start time — no blocking. Old versions cleaned up by VACUUM. Enables non-blocking reads alongside concurrent writes.</p>
+      <p><strong>WAL (Write-Ahead Log):</strong> every change is written to the WAL log before it's applied to data pages. On crash: replay WAL to recover. Also enables streaming replication — ship WAL segments to replicas. PostgreSQL logical replication: replays WAL as SQL changes, enabling cross-version replication and CDC (Debezium).</p>
     </div>
   </div>
 </div>
@@ -698,7 +871,7 @@ else: forward to service
 <div class="day-card">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge">DAY 10</span>
-    <span class="day-name">Sharding — Strategies and Hotspot Prevention</span>
+    <span class="day-name">Sharding — Strategies, Hotspot Prevention, Consistent Hashing</span>
     <span class="day-type">Scalability</span>
     <span class="day-toggle">▼</span>
   </div>
@@ -707,26 +880,28 @@ else: forward to service
       <div class="info-block">
         <h4>Sharding Strategies</h4>
         <ul>
-          <li><strong>Hash sharding:</strong> uniform distribution, no range queries</li>
-          <li><strong>Range sharding:</strong> range queries efficient, hotspots risk</li>
-          <li><strong>Directory sharding:</strong> lookup table, flexible, single point</li>
-          <li><strong>Geo sharding:</strong> data locality, GDPR compliance</li>
-          <li><strong>Consistent hashing:</strong> minimize re-distribution on scale</li>
+          <li><strong>Hash sharding:</strong> hash(key) % N → shard. Uniform distribution, no range queries across shards.</li>
+          <li><strong>Range sharding:</strong> shard by key range (A-M, N-Z). Range queries efficient. Hotspot risk if data is skewed.</li>
+          <li><strong>Directory sharding:</strong> lookup table maps key → shard. Most flexible, single point of failure.</li>
+          <li><strong>Geo sharding:</strong> shard by region/country. Data locality, GDPR compliance.</li>
+          <li><strong>Consistent hashing:</strong> hash ring — adding/removing nodes minimizes key movement. Used by DynamoDB, Cassandra.</li>
         </ul>
       </div>
       <div class="info-block">
-        <h4>Consistent Hashing</h4>
+        <h4>Consistent Hashing Deep Dive</h4>
         <ul>
-          <li>Virtual nodes (vnodes): better distribution</li>
-          <li>When node added/removed: only adjacent keys move</li>
-          <li>k/n keys move on average (not k total)</li>
-          <li>Used by: Cassandra, DynamoDB, Redis Cluster</li>
+          <li>Place nodes on hash ring (0 to 2³²)</li>
+          <li>Key → hash → find nearest node clockwise on ring</li>
+          <li>Add node: only neighbors' keys move (≈ k/n keys)</li>
+          <li>Remove node: only that node's keys move to next node</li>
+          <li><strong>Virtual nodes (vnodes):</strong> each physical node = 100-200 points on ring → better, even distribution even with heterogeneous hardware</li>
+          <li>Used by: DynamoDB, Cassandra, Redis Cluster, CDN cache routing</li>
         </ul>
       </div>
     </div>
     <div class="tradeoff-box">
-      <h4>Shard Key Selection — Critical</h4>
-      <p>Bad shard key = hotspots = one shard does all work. For social network: user_id hash works until celebrities exist (hot users). Solution: celebrity detection + fan-out on write vs fan-out on read. For time-series: time-based sharding causes write hotspot on latest shard. Use time + device_id composite key.</p>
+      <h4>Shard Key Selection — The Most Critical Decision</h4>
+      <p>Bad shard key = hotspots = one shard does all work while others are idle. For social network: user_id hash works for regular users but celebrities cause hot shards. Solution: celebrity detection + separate handling (fan-out on read for celebrities). For time-series: time-based shard key causes write hotspot on current time shard. Solution: composite key (time + device_id). Rule: choose a key with high cardinality AND even distribution across your access patterns. Avoid sequential keys (auto-increment IDs) — they create monotonic hotspots.</p>
     </div>
   </div>
 </div>
@@ -734,7 +909,7 @@ else: forward to service
 <div class="day-card">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge">DAY 11</span>
-    <span class="day-name">Replication — Sync vs Async, Quorum</span>
+    <span class="day-name">Replication — Sync vs Async, Leader Election, Quorums</span>
     <span class="day-type">Availability</span>
     <span class="day-toggle">▼</span>
   </div>
@@ -743,27 +918,30 @@ else: forward to service
       <div class="info-block">
         <h4>Replication Models</h4>
         <ul>
-          <li><strong>Single-leader:</strong> all writes to primary, fan-out to replicas</li>
-          <li><strong>Multi-leader:</strong> multiple write points, conflict resolution</li>
-          <li><strong>Leaderless (Dynamo):</strong> write/read quorums</li>
-          <li>Async: low latency writes, risk of data loss</li>
-          <li>Sync: durability guarantee, higher write latency</li>
+          <li><strong>Single-leader:</strong> all writes to primary, replicated to read replicas. Simple. Primary is write bottleneck.</li>
+          <li><strong>Multi-leader:</strong> writes accepted at multiple nodes. Conflict resolution required. Useful for multi-datacenter active-active.</li>
+          <li><strong>Leaderless (Dynamo-style):</strong> any node accepts writes. Quorum-based consistency.</li>
+          <li><strong>Sync replication:</strong> write confirmed only after replica ACKs. Durable but adds latency.</li>
+          <li><strong>Async replication:</strong> write confirmed immediately, replica catches up. Low latency but possible data loss on primary crash.</li>
+          <li><strong>Semi-sync:</strong> at least one replica must ACK. Balance between durability and latency. MySQL default.</li>
         </ul>
       </div>
       <div class="info-block">
         <h4>Quorum Reads/Writes</h4>
         <ul>
-          <li>n = replicas, w = write quorum, r = read quorum</li>
-          <li>Strong consistency: w + r &gt; n</li>
-          <li>Typical: n=3, w=2, r=2</li>
-          <li>Read-heavy: w=3, r=1 (write everywhere, read one)</li>
+          <li>n = total replicas, w = write quorum, r = read quorum</li>
+          <li><strong>Strong consistency:</strong> w + r &gt; n (overlap guarantees you read the latest write)</li>
+          <li>Typical: n=3, w=2, r=2 — tolerates 1 failure, strongly consistent</li>
           <li>Write-heavy: w=1, r=3 (fast writes, consistent reads)</li>
+          <li>Read-heavy: w=3, r=1 (durable writes, fast reads)</li>
+          <li>Availability-first: w=1, r=1 (AP system — eventual consistency)</li>
+          <li>Cassandra: tunable per query — LOCAL_QUORUM for multi-DC consistency</li>
         </ul>
       </div>
     </div>
     <div class="interview-tip">
-      <h4>Why This Matters for Your Background</h4>
-      <p>Hyperledger Fabric uses PBFT-like consensus — a multi-party quorum system. You can connect your blockchain consensus experience directly to Dynamo-style quorum writes. This is excellent Staff-level signal in interviews.</p>
+      <h4>Leader Election — How etcd/ZooKeeper Handle It</h4>
+      <p>Raft consensus: nodes time out waiting for heartbeat → become candidate → request votes → win majority → become leader. Election timeout is randomized (150–300ms) to prevent split votes. Fencing tokens prevent split-brain: new leader issues higher token; storage layer rejects writes with lower token. PostgreSQL failover (Patroni): uses etcd/Consul for leader election, switches DNS/VIP to new primary. Zero-downtime failover in ~30s.</p>
     </div>
   </div>
 </div>
@@ -780,22 +958,25 @@ else: forward to service
       <div class="info-block">
         <h4>Index Types</h4>
         <ul>
-          <li><strong>B-Tree:</strong> equality + range queries</li>
-          <li><strong>Hash:</strong> equality only, faster for exact match</li>
-          <li><strong>Composite:</strong> leftmost-prefix rule is critical</li>
-          <li><strong>Covering:</strong> query served from index alone (no table fetch)</li>
-          <li><strong>Partial:</strong> index on subset (WHERE active = true)</li>
-          <li><strong>Full-text:</strong> inverted index, TF-IDF scoring</li>
+          <li><strong>B-Tree (default):</strong> equality + range queries. Works with LIKE 'prefix%'.</li>
+          <li><strong>Hash:</strong> equality only — slightly faster for exact match, no range support</li>
+          <li><strong>Composite:</strong> (col_a, col_b, col_c). Leftmost-prefix rule: must include leading columns in query to use index.</li>
+          <li><strong>Covering index:</strong> query fully served from index without table fetch (index includes all selected columns)</li>
+          <li><strong>Partial index:</strong> index on subset of rows. <code>WHERE active = true</code> — smaller, faster for frequent filtered queries.</li>
+          <li><strong>Full-text:</strong> inverted index with TF-IDF ranking. Use Elasticsearch for serious full-text search.</li>
+          <li><strong>GIN / GiST:</strong> PostgreSQL indexes for arrays, JSONB, full-text, geometric types.</li>
         </ul>
       </div>
       <div class="info-block">
-        <h4>Query Planning Signals</h4>
+        <h4>Query Optimization Signals</h4>
         <ul>
-          <li>EXPLAIN ANALYZE: seq scan vs index scan</li>
-          <li>Index selectivity: high cardinality = better index</li>
-          <li>N+1 query problem: eager load with JOIN</li>
-          <li>Connection pooling: pgBouncer transaction mode</li>
-          <li>Read replicas for analytical queries</li>
+          <li>EXPLAIN ANALYZE: look for Seq Scan on large tables → missing index</li>
+          <li>Index selectivity: high cardinality columns make better indexes (email &gt; gender)</li>
+          <li>N+1 query problem: 1 query for list + N queries for each item. Fix with JOIN or batch load.</li>
+          <li>Connection pooling: PgBouncer in transaction mode — 10K app connections → 100 real DB connections</li>
+          <li>Read replicas for analytics/reporting — separate from OLTP primary</li>
+          <li>Avoid SELECT * — select only needed columns (reduces I/O, enables covering indexes)</li>
+          <li>Pagination: use keyset pagination (<code>WHERE id &gt; last_id</code>) not OFFSET for large tables</li>
         </ul>
       </div>
     </div>
@@ -805,24 +986,25 @@ else: forward to service
 <div class="checkpoint-card">
   <h3>🎯 Week 2 Checkpoint</h3>
   <ul>
-    <li>When would you choose LSM over B-Tree? Articulate write amplification trade-off</li>
-    <li>Design a sharding strategy for a payment system with hot accounts — what's your approach?</li>
-    <li>Explain MVCC and why it enables non-blocking reads</li>
-    <li>w=2, r=2, n=3 — is this strongly consistent? What if w=1, r=3?</li>
+    <li>When would you choose LSM tree over B-Tree? Articulate write amplification trade-off.</li>
+    <li>Design a sharding strategy for a payment system with high-value accounts — what's your shard key and why?</li>
+    <li>Explain MVCC and why it enables non-blocking reads without SELECT FOR SHARE locks</li>
+    <li>w=2, r=2, n=3 — is this strongly consistent? What about w=1, r=1, n=3?</li>
+    <li>What's the N+1 problem? Show the fix with a query example.</li>
   </ul>
 </div>
 
-<!-- WEEK 3: MESSAGING & REAL-TIME -->
+<!-- ═══════════════════════ WEEK 3 ═══════════════════════ -->
 <div class="week-header" id="week3">
   <span class="week-num">WEEK 03</span>
-  <span class="week-title">Messaging Systems, Kafka Internals, Real-Time Architecture</span>
+  <span class="week-title">Messaging, Event-Driven Architecture, Real-Time Systems</span>
   <span class="week-theme">EVENT-DRIVEN</span>
 </div>
 
 <div class="day-card">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge">DAY 15</span>
-    <span class="day-name">Kafka Internals — Partitions, Offsets, Consumer Groups</span>
+    <span class="day-name">Kafka Internals — Partitions, Offsets, Consumer Groups, EOS</span>
     <span class="day-type">Messaging</span>
     <span class="day-toggle">▼</span>
   </div>
@@ -831,32 +1013,34 @@ else: forward to service
       <div class="info-block">
         <h4>Kafka Architecture</h4>
         <ul>
-          <li>Topic → Partitions (ordered, immutable log)</li>
-          <li>Offset: per-partition monotonic counter</li>
-          <li>Consumer Group: each partition consumed by one consumer</li>
-          <li>Replication factor: ISR (In-Sync Replicas)</li>
-          <li>Leader election via ZooKeeper / KRaft</li>
-          <li>Retention: time-based or size-based</li>
+          <li>Topic → Partitions (ordered, immutable append-only log)</li>
+          <li>Offset: per-partition monotonic counter. Consumer tracks its position.</li>
+          <li>Consumer Group: each partition consumed by exactly one consumer in the group</li>
+          <li>Replication factor: ISR (In-Sync Replicas) — leader + N replicas</li>
+          <li>Leader election via KRaft (Kafka Raft — replaces ZooKeeper since Kafka 3.3)</li>
+          <li>Retention: time-based (7 days default) or size-based</li>
+          <li>Log compaction: keep only latest value per key — good for state stores</li>
         </ul>
       </div>
       <div class="info-block">
-        <h4>Performance Knobs (Your Experience)</h4>
+        <h4>Performance Tuning Knobs</h4>
         <ul>
-          <li>Partition count: parallelism ceiling for consumers</li>
-          <li>acks=all: strongest durability, highest latency</li>
-          <li>linger.ms + batch.size: throughput vs latency</li>
-          <li>Compression: LZ4 for speed, zstd for ratio</li>
-          <li>Log compaction: keep only latest value per key</li>
+          <li>Partition count: parallelism ceiling for consumers — can't have more consumers than partitions</li>
+          <li>acks=0: fire and forget (fastest, data loss). acks=1: leader ack. acks=all: all ISR ack (slowest, most durable).</li>
+          <li>linger.ms + batch.size: batch small messages — increases throughput, adds latency</li>
+          <li>compression.type: lz4 (speed) or zstd (ratio). Apply at producer level.</li>
+          <li>max.poll.interval.ms: if consumer doesn't poll in time → rebalance triggered</li>
+          <li>Partition key: determines which partition a message lands on — use user_id for ordering per user</li>
         </ul>
       </div>
     </div>
     <div class="tradeoff-box">
-      <h4>Ordering Guarantee Nuance</h4>
-      <p>Kafka guarantees per-partition ordering only. Cross-partition: use a single partition (lose parallelism) or accept reordering. For your CBDC asset transfers: partition by account_id → all transfers for one account are ordered. But cross-account transactions need 2-phase approach or saga pattern.</p>
+      <h4>Exactly-Once Semantics (EOS)</h4>
+      <p>Kafka guarantees: at-least-once by default (consumer may process duplicate on crash). For exactly-once: (1) Idempotent producer: enable.idempotence=true — sequence numbers deduplicate retries at broker. (2) Transactional API: atomic produce to multiple topics + consumer offset commit in one transaction. In practice: idempotent consumers (dedup on DB side using unique constraint on idempotency key) are simpler and more resilient than Kafka EOS transactions.</p>
     </div>
     <div class="interview-tip">
-      <h4>Staff-Level: Exactly-Once Semantics</h4>
-      <p>Kafka EOS: idempotent producer (sequence numbers), transactional API (atomic produce + consumer offset commit). In practice: idempotent consumers (dedup on DB side) are simpler and more resilient. Your forex gateway likely uses this — mention it.</p>
+      <h4>Ordering Nuance</h4>
+      <p>Kafka guarantees ordering per partition only — not across partitions. For strict ordering of all events for a user: partition by user_id → all events for that user land in same partition in order. Cross-user ordering is not guaranteed. For globally ordered events (rare): use a single partition (loses parallelism) or use application-level sequence numbers.</p>
     </div>
   </div>
 </div>
@@ -873,25 +1057,27 @@ else: forward to service
       <div class="info-block">
         <h4>2-Phase Commit (2PC)</h4>
         <ul>
-          <li>Coordinator: PREPARE → all VOTE YES → COMMIT</li>
-          <li>Blocking: coordinator failure = all locked</li>
-          <li>Used in distributed SQL (Google Spanner uses 2PC)</li>
-          <li>Avoid for microservices: too much coupling</li>
+          <li>Coordinator: send PREPARE → all participants vote YES/NO</li>
+          <li>If all YES → send COMMIT to all. If any NO → send ABORT.</li>
+          <li>Blocking protocol: if coordinator crashes after PREPARE, participants are stuck (holding locks)</li>
+          <li>Used in distributed SQL (Spanner uses 2PC + Paxos). Avoid in microservices — too much coupling.</li>
+          <li>3-Phase Commit (3PC) adds pre-commit phase to reduce blocking — rarely used in practice</li>
         </ul>
       </div>
       <div class="info-block">
-        <h4>Saga Pattern (Your Kafka Expertise)</h4>
+        <h4>Saga Pattern</h4>
         <ul>
-          <li>Choreography: services emit events, react to others</li>
-          <li>Orchestration: central coordinator sends commands</li>
-          <li>Compensating transactions: undo on failure</li>
-          <li>Your CBDC: orchestrated saga for cross-border settlement</li>
+          <li>Break distributed transaction into sequence of local transactions</li>
+          <li>Each step publishes an event that triggers the next service</li>
+          <li>On failure: compensating transactions undo previous steps in reverse order</li>
+          <li><strong>Choreography:</strong> services react to events autonomously — no central coordinator. Simple, but harder to track overall state.</li>
+          <li><strong>Orchestration:</strong> central saga orchestrator sends commands to each service. Easier to monitor and debug. Coupling to orchestrator.</li>
         </ul>
       </div>
     </div>
     <div class="tradeoff-box">
-      <h4>Outbox Pattern — Avoid Dual Write</h4>
-      <p>Problem: write to DB + publish to Kafka — what if Kafka fails? Solution: Outbox table in same DB transaction. CDC (Debezium) reads WAL → publishes to Kafka. Atomicity within DB, eventual delivery to Kafka. This is production-grade pattern every Staff eng must know.</p>
+      <h4>Outbox Pattern — The Production-Grade Dual-Write Fix</h4>
+      <p><strong>Problem:</strong> write to DB and publish to Kafka — if Kafka publish fails after DB commit, event is lost. If you roll back on Kafka failure, you lose the DB write. This is the dual-write problem.<br><strong>Solution — Outbox pattern:</strong> write to DB + Outbox table in same transaction (atomic). Debezium watches the WAL for Outbox table inserts and publishes to Kafka. Atomicity guaranteed by DB transaction. Eventual delivery guaranteed by CDC. This is the correct production approach for any service that writes to DB AND publishes events.</p>
     </div>
   </div>
 </div>
@@ -899,30 +1085,42 @@ else: forward to service
 <div class="day-card">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge">DAY 17</span>
-    <span class="day-name">Real-Time Systems — WebSockets, SSE, Long Polling</span>
+    <span class="day-name">Real-Time Systems — WebSockets, SSE, Long Polling at Scale</span>
     <span class="day-type">Real-Time</span>
     <span class="day-toggle">▼</span>
   </div>
   <div class="day-body">
     <div class="grid2">
       <div class="info-block">
-        <h4>Protocols Comparison</h4>
+        <h4>Protocol Comparison</h4>
         <ul>
-          <li><strong>Long Polling:</strong> client waits, server holds until data. Simple, high latency</li>
-          <li><strong>SSE:</strong> server → client only, HTTP/1.1 compatible. Good for feeds</li>
-          <li><strong>WebSocket:</strong> full-duplex, persistent TCP. Chat, gaming, forex tickers</li>
-          <li><strong>WebTransport:</strong> QUIC-based, future standard</li>
+          <li><strong>Long Polling:</strong> client sends request → server holds until event or timeout → client immediately re-requests. Latency = server hold time. High connection overhead. Use only for legacy clients.</li>
+          <li><strong>SSE (Server-Sent Events):</strong> persistent HTTP connection, server streams events to client. One-way (server → client only). HTTP/1.1 compatible. Good for: live feeds, notifications, progress bars.</li>
+          <li><strong>WebSocket:</strong> full-duplex persistent TCP connection. Both sides can send at any time. Best for: chat, collaborative editing, gaming, live dashboards. Uses HTTP Upgrade handshake.</li>
+          <li><strong>WebTransport (QUIC):</strong> emerging standard. Datagrams + streams over HTTP/3. Better for real-time gaming, video conferencing.</li>
         </ul>
       </div>
       <div class="info-block">
-        <h4>At Scale: Connection Management</h4>
+        <h4>WebSocket at Scale</h4>
         <ul>
-          <li>10K WS connections per server (Go handles well)</li>
-          <li>Presence service: heartbeat + timeout tracking</li>
-          <li>Fan-out: user in multiple rooms → multiple subscriptions</li>
-          <li>Message broker as pub-sub backend (Redis PubSub, Kafka)</li>
+          <li>Go handles 100K+ concurrent WS connections per server with goroutines</li>
+          <li>Connection server is stateful — can't naively load balance (sticky sessions needed at WS tier)</li>
+          <li>Pub-sub backend: connection servers subscribe to Redis Pub-Sub or Kafka topics</li>
+          <li>Fan-out: message → Redis Pub-Sub → all connection servers for recipient's room/channel → push to client</li>
+          <li>Presence tracking: heartbeat every 15s → Redis key with 30s TTL. Key expiry = user offline.</li>
+          <li>Reconnect: client tracks last received sequence number → reconnect with offset → server replays missed messages</li>
         </ul>
       </div>
+    </div>
+    <div class="sys-diagram">
+<span>WebSocket Fan-Out Architecture:</span>
+Client A ←→ [WS Server 1] ←→ [Redis Pub-Sub: room:123]
+Client B ←→ [WS Server 2] ←→ [Redis Pub-Sub: room:123]
+Client C ←→ [WS Server 1] ←→ [Redis Pub-Sub: room:123]
+
+Message from A → WS Server 1 → publish to Redis topic "room:123"
+Redis Pub-Sub → fan out to all WS servers subscribed to "room:123"
+WS Server 1 → push to Client C. WS Server 2 → push to Client B.
     </div>
   </div>
 </div>
@@ -930,30 +1128,36 @@ else: forward to service
 <div class="day-card">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge">DAY 18–19</span>
-    <span class="day-name">Observability — Metrics, Logs, Traces (The 3 Pillars)</span>
+    <span class="day-name">Observability — Metrics, Logs, Traces (The Three Pillars)</span>
     <span class="day-type">Production</span>
     <span class="day-toggle">▼</span>
   </div>
   <div class="day-body">
     <div class="grid2">
       <div class="info-block">
-        <h4>Metrics (Prometheus/Grafana)</h4>
+        <h4>Metrics (Prometheus + Grafana)</h4>
         <ul>
-          <li>RED: Rate, Errors, Duration (per service)</li>
-          <li>USE: Utilization, Saturation, Errors (per resource)</li>
-          <li>Histogram: percentile latency (p99, p999)</li>
-          <li>Cardinality: avoid high-cardinality labels (user_id)</li>
+          <li><strong>RED method:</strong> Rate (requests/sec), Errors (error rate %), Duration (latency p50/p99)</li>
+          <li><strong>USE method:</strong> Utilization, Saturation, Errors — for infrastructure resources</li>
+          <li><strong>Histogram:</strong> p50, p90, p99 latency. Never use averages — they hide outliers.</li>
+          <li><strong>Cardinality trap:</strong> avoid high-cardinality labels (user_id, request_id) — explodes Prometheus memory</li>
+          <li>SLI/SLO/SLA: SLI=measure (p99 latency), SLO=target (p99 &lt; 200ms 99.9% of time), SLA=contractual guarantee</li>
         </ul>
       </div>
       <div class="info-block">
-        <h4>Distributed Tracing (Jaeger/Tempo)</h4>
+        <h4>Distributed Tracing (Jaeger, Tempo)</h4>
         <ul>
-          <li>Span: single operation with timing</li>
-          <li>Trace: tree of spans across services</li>
-          <li>Propagate: W3C TraceContext header</li>
-          <li>Sampling: head-based (random %) vs tail-based (on error)</li>
+          <li><strong>Trace:</strong> tree of spans across services for one request</li>
+          <li><strong>Span:</strong> single operation with start/end time, service name, tags</li>
+          <li>Propagate: W3C TraceContext header (<code>traceparent</code>) across service calls</li>
+          <li>Sampling: head-based (random %) vs tail-based (on error/slow). Tail-based catches all slow/error requests.</li>
+          <li>OpenTelemetry: vendor-neutral instrumentation standard. Collect once, export to Jaeger/Tempo/Datadog.</li>
         </ul>
       </div>
+    </div>
+    <div class="info-block" style="margin-top:.75rem;">
+      <h4>Structured Logging Best Practices</h4>
+      <p style="font-size:.82rem;color:var(--muted);">Always log JSON in production. Include: timestamp, level, service, trace_id, span_id, user_id (when applicable), message, and relevant context fields. Never log PII (emails, passwords, payment cards). Use log levels correctly: DEBUG (dev only), INFO (normal ops), WARN (unexpected but handled), ERROR (needs attention), FATAL (crash). Centralize with ELK (Elasticsearch + Logstash + Kibana) or Loki + Grafana. Correlate logs with traces via trace_id for end-to-end debugging.</p>
     </div>
   </div>
 </div>
@@ -961,18 +1165,19 @@ else: forward to service
 <div class="checkpoint-card">
   <h3>🎯 Week 3 Checkpoint</h3>
   <ul>
-    <li>Explain the outbox pattern to a "junior" without reading notes</li>
-    <li>When does Kafka guarantee ordering? When doesn't it?</li>
-    <li>Design a presence system for WhatsApp (10M concurrent users) — real-time connection tracking</li>
-    <li>Saga choreography vs orchestration — when to use each?</li>
+    <li>Explain the Outbox pattern to a junior engineer — why is it needed and how does it work?</li>
+    <li>When does Kafka guarantee ordering? When does it not?</li>
+    <li>Design a presence system for a chat app with 10M concurrent users — connection tracking, heartbeat, fan-out</li>
+    <li>Saga choreography vs orchestration — what are the debugging trade-offs?</li>
+    <li>What's the difference between p50 and p99 latency? Why does p99 matter more for user experience?</li>
   </ul>
 </div>
 
-<!-- WEEK 4: REAL SYSTEM DESIGNS + AI AGENTS -->
+<!-- ═══════════════════════ WEEK 4 ═══════════════════════ -->
 <div class="week-header" id="week4">
   <span class="week-num">WEEK 04</span>
-  <span class="week-title">Real System Designs + AI Agent Architecture</span>
-  <span class="week-theme">FULL DESIGNS · AGENTS</span>
+  <span class="week-title">Real System Designs — HLD + LLD Full Walkthroughs</span>
+  <span class="week-theme">FULL DESIGNS</span>
 </div>
 
 <div class="day-card">
@@ -984,35 +1189,39 @@ else: forward to service
   </div>
   <div class="day-body">
     <div class="sys-diagram">
-<span>HLD Flow:</span><br>
-Client → [WebSocket Server Cluster] → [Message Service]<br>
-                                          ↓<br>
-                               [Kafka: msg-events topic]<br>
-                                    ↓            ↓<br>
-                        [Delivery Service]  [Persistence Service]<br>
-                                    ↓            ↓<br>
-                        [Recipient WS Conn]  [Cassandra: messages]<br>
-<br>
-<span>Presence:</span> Redis SET user:online → 30s TTL, heartbeat every 15s<br>
-<span>Push Notif:</span> FCM/APNs for offline users
+<span>HLD:</span>
+Client → [WebSocket Server Cluster] → [Message Service]
+                                              ↓
+                                 [Kafka: msg-events topic]
+                                       ↓           ↓
+                           [Delivery Service]  [Persistence Service]
+                                       ↓           ↓
+                           [Recipient WS conn]  [Cassandra: messages by chat_id + timestamp]
+
+<span>Presence:</span>  Redis SET user:{id}:online → 30s TTL, heartbeat every 15s
+<span>Push Notif:</span> if recipient offline → FCM/APNs via [Notification Service]
+<span>Media:</span>     Client uploads to S3 directly → CDN URL stored in message
     </div>
     <div class="grid2" style="margin-top:.75rem;">
       <div class="info-block">
         <h4>Key Design Decisions</h4>
         <ul>
-          <li>Cassandra: write-optimized, time-ordered messages per chat</li>
-          <li>Message ID: timestamp + server ID + sequence (Snowflake-like)</li>
-          <li>E2E encryption: keys exchanged OOB, server stores ciphertext only</li>
-          <li>Media: S3 storage, CDN delivery, URL in message</li>
+          <li>Cassandra: partition by chat_id, cluster by timestamp DESC — efficient time-ordered reads per chat</li>
+          <li>Message ID: Snowflake (timestamp + server + seq) — globally unique, sortable, no coordination</li>
+          <li>E2E encryption: Signal Protocol — keys exchanged out-of-band, server stores only ciphertext</li>
+          <li>WebSocket server → stateful, use consistent hashing to route user's connections to same server</li>
+          <li>Message state machine: SENT → DELIVERED (ACK from recipient device) → READ (read receipt)</li>
+          <li>Offline delivery: store in Cassandra + push notification. On reconnect, fetch unread since last_seen_timestamp.</li>
         </ul>
       </div>
       <div class="info-block">
-        <h4>LLD: Message State Machine</h4>
+        <h4>Group Messages — Fan-Out Strategy</h4>
         <ul>
-          <li>States: SENT → DELIVERED → READ</li>
-          <li>ACK back to sender via WebSocket</li>
-          <li>Offline delivery: store in Cassandra, push on reconnect</li>
-          <li>Group messages: fan-out per member (bounded fan-out)</li>
+          <li>Small groups (&lt;100 members): fan-out on write — write message to each member's inbox</li>
+          <li>Large groups: fan-out on read — members pull from shared group inbox on open</li>
+          <li>Bounded fan-out: limit group size (WhatsApp: 1024) to cap write amplification</li>
+          <li>Group membership: cached in Redis, backed by PostgreSQL</li>
+          <li>Delivery receipt for groups: message delivered when ALL members receive (complex)</li>
         </ul>
       </div>
     </div>
@@ -1022,29 +1231,49 @@ Client → [WebSocket Server Cluster] → [Message Service]<br>
 <div class="day-card">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge">DAY 23</span>
-    <span class="day-name">Design YouTube — Video at Scale</span>
+    <span class="day-name">Design YouTube — Video Storage, Transcoding, CDN</span>
     <span class="day-type">Full HLD+LLD</span>
     <span class="day-toggle">▼</span>
   </div>
   <div class="day-body">
     <div class="sys-diagram">
-<span>Upload Flow:</span><br>
-Client → [Upload Service] → S3 (raw video)<br>
-                              ↓<br>
-                    [Transcoding Job Queue (Kafka)]<br>
-                              ↓<br>
-                    [Worker Farm: FFmpeg containers]<br>
-                              ↓<br>
-                    [S3: 360p, 720p, 1080p, 4K segments (HLS)]<br>
-                              ↓<br>
-                    [CDN distribution]<br>
-<br>
-<span>View Flow:</span><br>
-Client → CDN (HLS manifest + segments) → Adaptive Bitrate streaming
+<span>Upload Flow:</span>
+Client → [Upload Service] → S3 (raw video)
+                                 ↓
+                   [Kafka: video-uploaded topic]
+                                 ↓
+                   [Transcoding Job Queue]
+                                 ↓
+                   [Worker Farm: FFmpeg containers (auto-scale)]
+                                 ↓
+                   [S3: segments in HLS format — 360p, 720p, 1080p, 4K]
+                                 ↓
+                   [CDN: distribute segments globally]
+
+<span>View Flow:</span>
+Client → CDN (HLS manifest .m3u8) → Adaptive Bitrate: pick quality based on bandwidth
     </div>
-    <div class="info-block" style="margin-top:.75rem;">
-      <h4>Scale Numbers to Know</h4>
-      <p>500 hours uploaded per minute. Transcoding: parallelized per video segment. CDN: 95%+ of views served from edge. Recommendation: offline ML pipeline, pre-computed feeds. View count: approximate with HyperLogLog or sharded counters (Redis INCR per shard, aggregate).</p>
+    <div class="grid2" style="margin-top:.75rem;">
+      <div class="info-block">
+        <h4>Scale Numbers to Reason With</h4>
+        <ul>
+          <li>500 hours of video uploaded per minute</li>
+          <li>1 hour of video → ~5GB raw → ~1.5GB after compression across qualities</li>
+          <li>Transcoding: parallelize per video segment (5s chunks) — 1 hour video → 720 chunks → 720 parallel jobs</li>
+          <li>CDN: 95%+ of views served from edge — origin only serves cache misses</li>
+          <li>View count: approximate with Redis INCR per shard, aggregate periodically. Exact count: HyperLogLog for unique viewers.</li>
+        </ul>
+      </div>
+      <div class="info-block">
+        <h4>Recommendation System (Offline ML)</h4>
+        <ul>
+          <li>Watch history + clicks → feature store → ML training pipeline (Spark)</li>
+          <li>Pre-compute recommendations per user nightly → store in Redis/DynamoDB</li>
+          <li>Real-time signals: last 10 watch actions → re-score with lightweight model</li>
+          <li>Cold start: new users get popular videos by category until enough signal</li>
+          <li>Candidate generation → ranking → filtering (already watched, policy) → serve</li>
+        </ul>
+      </div>
     </div>
   </div>
 </div>
@@ -1052,7 +1281,7 @@ Client → CDN (HLS manifest + segments) → Adaptive Bitrate streaming
 <div class="day-card">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge">DAY 24</span>
-    <span class="day-name">Design Uber — Real-Time Location & Matching</span>
+    <span class="day-name">Design Uber — Real-Time Location, Matching, Surge</span>
     <span class="day-type">Full HLD+LLD</span>
     <span class="day-toggle">▼</span>
   </div>
@@ -1061,23 +1290,38 @@ Client → CDN (HLS manifest + segments) → Adaptive Bitrate streaming
       <div class="info-block">
         <h4>Location Service</h4>
         <ul>
-          <li>Driver sends location every 4 seconds</li>
-          <li>Geohash: encode lat/lng as string (precision = radius)</li>
-          <li>Redis: key = geohash:cell, value = set of driver IDs</li>
-          <li>Query: nearby geohash cells for area search</li>
-          <li>WebSocket for driver location streaming</li>
+          <li>Driver sends location every 4 seconds via WebSocket</li>
+          <li>Geohash: encode lat/lng as string prefix (shorter string = larger cell)</li>
+          <li>Redis: GEOADD key lng lat driver_id. GEOSEARCH for radius queries.</li>
+          <li>Or: geohash prefix → Redis SET of driver IDs in that cell. Query neighboring cells.</li>
+          <li>Location history: write to Cassandra for trip replay and billing</li>
         </ul>
       </div>
       <div class="info-block">
         <h4>Matching Service</h4>
         <ul>
-          <li>Rider request → query nearby drivers (geohash lookup)</li>
-          <li>Score by: distance + rating + driver type + surge</li>
-          <li>Dispatch to top N drivers, first accept wins</li>
-          <li>Distributed lock on driver during dispatch window</li>
-          <li>ETA: precomputed road graph (OSRM/Google Maps)</li>
+          <li>Rider requests → query nearby available drivers (geosearch)</li>
+          <li>Score drivers: distance + rating + vehicle type + surge zone</li>
+          <li>Dispatch to top N drivers simultaneously (first to accept wins)</li>
+          <li>Distributed lock on driver during dispatch window (Redis SET NX PX 30000)</li>
+          <li>ETA: precomputed road graph (OSRM or Google Maps Platform)</li>
+          <li>Surge pricing: supply/demand ratio per geohash cell, multiplier applied at pricing service</li>
         </ul>
       </div>
+    </div>
+    <div class="sys-diagram">
+<span>Ride Request Flow:</span>
+Rider app → POST /rides → [Ride Service]
+                                ↓
+                    [Location Service: find nearby drivers via Redis GEO]
+                                ↓
+                    [Matching Service: score + dispatch]
+                                ↓ (send offer to top 3 drivers)
+                    [Driver apps via WebSocket push]
+                                ↓ (first driver accepts)
+                    [Ride Service: create ride, lock driver, notify rider]
+                                ↓
+                    [Kafka: ride-accepted → ETA service, billing service]
     </div>
   </div>
 </div>
@@ -1085,18 +1329,34 @@ Client → CDN (HLS manifest + segments) → Adaptive Bitrate streaming
 <div class="day-card">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge">DAY 25</span>
-    <span class="day-name">Design URL Shortener + Distributed Cache</span>
+    <span class="day-name">Design URL Shortener + Rate-Limited API Service</span>
     <span class="day-type">HLD</span>
     <span class="day-toggle">▼</span>
   </div>
   <div class="day-body">
-    <div class="info-block" style="margin-bottom:.75rem;">
-      <h4>URL Shortener — Simple but Deep</h4>
-      <p>Hash: MD5(url) → take first 7 chars → collision check → store. Better: base62 encoding of auto-increment ID. CDN at edge for redirect (301 permanent, 302 for analytics). Scale: 100M URLs/day → Cassandra for write throughput, Redis for hot URLs.</p>
-    </div>
-    <div class="info-block">
-      <h4>Distributed Cache (Redis Cluster)</h4>
-      <p>Consistent hashing across nodes. Hash slots: 16384 slots distributed across nodes. CRC16(key) % 16384 → slot → node. Replication: each master has N replicas. Failure: replica promotes, clients redirect. Cache-aside pattern for application layer.</p>
+    <div class="grid2">
+      <div class="info-block">
+        <h4>URL Shortener</h4>
+        <ul>
+          <li>Short code generation: base62(auto-increment ID) — simple, unique, sortable</li>
+          <li>Alternative: MD5(url)[0:7] — collision check required, no guarantee of uniqueness</li>
+          <li>Redirect: 301 (permanent — browser caches, saves future requests) vs 302 (temporary — allows analytics tracking)</li>
+          <li>Storage: DynamoDB (short_code → long_url + metadata). 100M URLs/day → Cassandra for write throughput.</li>
+          <li>Cache hot redirects in Redis: top 10% of links → 90%+ of traffic</li>
+          <li>Analytics: log redirect events to Kafka → Spark/Flink pipeline → ClickHouse for querying</li>
+          <li>Custom domains: DNS CNAME to CDN → CDN routes to redirect service</li>
+        </ul>
+      </div>
+      <div class="info-block">
+        <h4>Redis Cluster Architecture</h4>
+        <ul>
+          <li>Hash slots: 16384 slots distributed across nodes. CRC16(key) % 16384 → slot → node.</li>
+          <li>Each master has N replicas. Failure: replica auto-promotes (Sentinel or Cluster mode).</li>
+          <li>Hot key problem: single key too popular → one slot hot. Solution: replicate hot key across shards with suffix (user:42:0, user:42:1).</li>
+          <li>CLUSTER KEYSLOT cmd: check which slot a key maps to</li>
+          <li>Cross-slot transactions: not supported — redesign if needed (use Lua scripts within same slot)</li>
+        </ul>
+      </div>
     </div>
   </div>
 </div>
@@ -1104,34 +1364,34 @@ Client → CDN (HLS manifest + segments) → Adaptive Bitrate streaming
 <div class="day-card">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge">DAY 26</span>
-    <span class="day-name">Design Twitter Feed — Fan-out Strategies</span>
+    <span class="day-name">Design Twitter/X Feed — Fan-Out Strategies</span>
     <span class="day-type">Full HLD+LLD</span>
     <span class="day-toggle">▼</span>
   </div>
   <div class="day-body">
     <div class="grid2">
       <div class="info-block">
-        <h4>Fan-out on Write (Push)</h4>
+        <h4>Fan-Out on Write (Push)</h4>
         <ul>
-          <li>On tweet: push to all followers' feed caches</li>
-          <li>O(followers) work at write time</li>
-          <li>Read is O(1) — just fetch pre-built feed</li>
-          <li>Celebrity problem: 50M followers = 50M writes</li>
+          <li>On tweet: push tweet_id to all followers' feed caches (Redis ZSET, score=timestamp)</li>
+          <li>O(followers) work at write time. Read is O(1) — just fetch pre-built feed.</li>
+          <li>Celebrity problem: user with 50M followers = 50M Redis writes per tweet</li>
+          <li>Good for: regular users (&lt;1M followers) — fast feed reads</li>
         </ul>
       </div>
       <div class="info-block">
-        <h4>Fan-out on Read (Pull)</h4>
+        <h4>Fan-Out on Read (Pull)</h4>
         <ul>
-          <li>On load: fetch tweets from all followed users</li>
-          <li>Merge, sort, paginate at read time</li>
-          <li>Heavy reads, but celebrities don't cause write spikes</li>
-          <li>Twitter uses hybrid: push for normal users, pull for celebrities</li>
+          <li>On feed load: fetch recent tweets from all followed users, merge + sort</li>
+          <li>Heavy reads but no write amplification for celebrities</li>
+          <li>N followed users → N DB queries → merge sort → paginate. Slow for users following many accounts.</li>
+          <li>Good for: celebrities — read cost is shared across followers, not pushed to write</li>
         </ul>
       </div>
     </div>
     <div class="interview-tip">
-      <h4>Staff-Level Answer</h4>
-      <p>Hybrid approach: classify users by follower count. Regular users (< 1M followers): fan-out on write to Redis ZSET (score=timestamp). Celebrity users: on read, merge their recent tweets with pre-built feed. This is the actual Twitter approach — mention it confidently.</p>
+      <h4>Hybrid Approach — The Actual Twitter Answer</h4>
+      <p>Classify users by follower count. Regular users (&lt;1M followers): fan-out on write to Redis ZSET (score=timestamp). Celebrity users (&gt;1M): on read, merge their recent tweets with the user's pre-built feed from Redis. This is what Twitter actually did. When you mention this unprompted, it signals you understand real production trade-offs, not just textbook patterns. Also discuss: feed truncation (keep only last 800 tweets in cache), backfill on first load, and how promoted tweets are injected.</p>
     </div>
   </div>
 </div>
@@ -1139,7 +1399,7 @@ Client → CDN (HLS manifest + segments) → Adaptive Bitrate streaming
 <div class="day-card">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge">DAY 27–28</span>
-    <span class="day-name">LLD Deep Dives — Design Patterns in Practice</span>
+    <span class="day-name">LLD Deep Dives — Design Patterns + Concurrency</span>
     <span class="day-type">LLD</span>
     <span class="day-toggle">▼</span>
   </div>
@@ -1148,23 +1408,29 @@ Client → CDN (HLS manifest + segments) → Adaptive Bitrate streaming
       <div class="info-block">
         <h4>LLD: Parking Lot System</h4>
         <ul>
-          <li>Entities: ParkingLot, Level, Slot, Ticket, Vehicle</li>
-          <li>Strategy pattern: pricing per vehicle type</li>
-          <li>Observer: availability board updates</li>
-          <li>Factory: vehicle creation by type</li>
-          <li>Concurrent slot booking: optimistic locking</li>
+          <li>Entities: ParkingLot, Level, Slot, Ticket, Vehicle (abstract), Car/Bike/Truck (concrete)</li>
+          <li><strong>Strategy pattern:</strong> PricingStrategy interface — HourlyPricing, FlatRatePricing. Swap without changing Ticket.</li>
+          <li><strong>Factory pattern:</strong> VehicleFactory.create(type) — returns correct Vehicle subclass</li>
+          <li><strong>Observer pattern:</strong> SlotAvailabilityBoard subscribes to slot state changes</li>
+          <li><strong>Concurrency:</strong> booking a slot → check availability + assign must be atomic. Use optimistic locking: slot has version field, CAS update fails if version changed.</li>
+          <li>State machine: AVAILABLE → RESERVED → OCCUPIED → AVAILABLE</li>
         </ul>
       </div>
       <div class="info-block">
         <h4>LLD: Notification System</h4>
         <ul>
-          <li>Strategy: Email, SMS, Push, Slack</li>
-          <li>Template method: notification formatting</li>
-          <li>Queue-based delivery with retry (exponential backoff)</li>
-          <li>Idempotency key: deduplicate sends</li>
-          <li>Rate limiting per user/channel</li>
+          <li>Entities: Notification, NotificationChannel (abstract), EmailChannel, SMSChannel, PushChannel</li>
+          <li><strong>Strategy pattern:</strong> each channel implements send(notification). Plug in new channels without changing core.</li>
+          <li><strong>Template method:</strong> BaseNotification.send() calls format() + deliver() — subclasses override format()</li>
+          <li>Queue-based delivery: write to Kafka topic per channel → consumers retry with exponential backoff</li>
+          <li>Idempotency: idempotency_key per notification → dedup on delivery side</li>
+          <li>Rate limiting per user per channel: prevent spam — max 10 emails/day per user</li>
         </ul>
       </div>
+    </div>
+    <div class="interview-tip">
+      <h4>LLD Interview Signal</h4>
+      <p>The gap between senior and mid-level in LLD is concurrency awareness. Don't just draw classes — say "this slot booking has a TOCTOU (time-of-check-time-of-use) race condition between the availability check and the reservation write. I'd handle this with optimistic locking — add a version field to the Slot entity. The update only succeeds if version matches what we read. On conflict, retry with fresh read." Proactively naming race conditions and their solutions is the signal interviewers are looking for.</p>
     </div>
   </div>
 </div>
@@ -1172,27 +1438,23 @@ Client → CDN (HLS manifest + segments) → Adaptive Bitrate streaming
 <div class="checkpoint-card" style="background:rgba(0,229,176,0.04);border-color:rgba(0,229,176,0.2);">
   <h3 style="color:var(--accent3);">🏆 Day 29–30: Full Mock System Design Sessions</h3>
   <ul>
-    <li><strong>Day 29:</strong> 45-min mock: Design a real-time leaderboard (gaming). Cover: storage, real-time updates, global ranking, 10M players. Time yourself.</li>
-    <li><strong>Day 30:</strong> 45-min mock: Design a distributed job scheduler (cron at scale). Cover: single execution guarantee, failure recovery, priority queues.</li>
-    <li>Standard: HLD on whiteboard in first 10 min, then drill into hardest component, then discuss trade-offs unprompted</li>
-    <li>Signal: You should be driving the conversation, not answering questions reactively</li>
+    <li><strong>Day 29:</strong> 45-min mock — Design a real-time gaming leaderboard for 10M players. Cover: storage (Redis ZSET), real-time updates, global ranking, weekly/monthly resets, top-K queries. Time yourself strictly.</li>
+    <li><strong>Day 30:</strong> 45-min mock — Design a distributed job scheduler (cron at scale). Cover: exactly-once execution guarantee, failure recovery, priority queues, worker assignment, monitoring.</li>
+    <li>Standard: HLD complete in first 10 min, deep dive on hardest component, trade-offs raised unprompted before interviewer asks</li>
+    <li>Signal: You should be driving the conversation — proposing alternatives, naming limitations, asking clarifying questions proactively. Not answering reactively.</li>
   </ul>
 </div>
 
-<!-- ══════════════════════════════════════════════════════════ -->
-<!-- OPTIONAL WEEK 5: AI AGENT SYSTEM DESIGN                   -->
-<!-- ══════════════════════════════════════════════════════════ -->
-
+<!-- ═══════════════════════ WEEK 5 — OPTIONAL ═══════════════════════ -->
 <div class="week-header" id="week5" style="margin-top:5rem;border-top:2px dashed rgba(255,95,64,0.3);padding-top:2.5rem;">
   <span class="week-num" style="color:var(--accent2);">WEEK 05 · OPTIONAL</span>
   <span class="week-title">AI Agent System Design — The 2025 Frontier</span>
   <span class="week-theme" style="background:rgba(255,95,64,0.08);color:var(--accent2);border-color:rgba(255,95,64,0.3);">AI SYSTEMS</span>
 </div>
 <p style="color:var(--muted);font-size:.83rem;margin-bottom:2rem;max-width:680px;line-height:1.7;">
-  This week is <strong style="color:var(--text);">bonus / no time pressure</strong> — every concept here is additive on top of your existing system design foundation. AI agent design is now appearing in Staff-level loops at companies building AI products. All prior weeks remain fully intact.
+  This week is <strong style="color:var(--text);">bonus / no time pressure</strong> — every concept here builds on your existing system design foundation. AI agent design is now appearing at companies building AI products. All prior weeks remain fully intact.
 </p>
 
-<!-- DAY 31 -->
 <div class="day-card" style="border-color:rgba(255,95,64,0.15);">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge" style="color:var(--accent2);">DAY 31</span>
@@ -1205,62 +1467,32 @@ Client → CDN (HLS manifest + segments) → Adaptive Bitrate streaming
       <div class="info-block">
         <h4>ReAct Pattern (Reason + Act)</h4>
         <ul>
-          <li>LLM alternates: Thought → Action → Observation → repeat</li>
-          <li>Each iteration: LLM reasons about tool result, decides next step</li>
-          <li>Handles ambiguity and dynamic discovery well</li>
-          <li>Risk: error compounds over long chains — add max_steps limit</li>
-          <li>Best for: research, open-ended tasks, web navigation</li>
+          <li>LLM alternates: Thought → Action (tool call) → Observation → repeat until done</li>
+          <li>Handles ambiguity well — can discover information dynamically</li>
+          <li>Risk: error compounds over long chains. Add max_steps hard limit.</li>
+          <li>Best for: research tasks, open-ended exploration, web navigation</li>
           <li>Frameworks: LangGraph, LlamaIndex Agents</li>
         </ul>
       </div>
       <div class="info-block">
         <h4>Plan-and-Execute Pattern</h4>
         <ul>
-          <li>Planner LLM: generate full ordered task list upfront</li>
-          <li>Executor: smaller/cheaper model runs each step</li>
-          <li>Dramatically reduces cost — Planner called once, Executor many times</li>
-          <li>More auditable — plan is a visible artifact you can log</li>
-          <li>Re-planning: trigger if step fails or produces unexpected output</li>
-          <li>Best for: financial workflows, data pipelines, structured tasks</li>
+          <li>Planner LLM: generates full step-by-step task list upfront</li>
+          <li>Executor: smaller/cheaper model runs each step one at a time</li>
+          <li>Dramatically reduces cost — expensive Planner called once</li>
+          <li>More auditable — plan is a visible, loggable artifact</li>
+          <li>Best for: financial workflows, structured data pipelines, known task shapes</li>
+          <li>Add re-planning step if a step fails unexpectedly</li>
         </ul>
       </div>
     </div>
-    <div class="info-block" style="margin-top:.75rem;">
-      <h4>Reflection + Self-Critique Pattern</h4>
-      <ul style="display:grid;grid-template-columns:1fr 1fr;gap:.35rem;">
-        <li>Agent generates output, then critiques it against rubric</li>
-        <li>Iteration loop: generate → critique → revise → repeat N times</li>
-        <li>Reflexion paper: verbal reinforcement learning — no weight updates</li>
-        <li>Best for: code generation, essay writing, multi-step reasoning</li>
-        <li>Cost: 2-3x more LLM calls per task — worth it for quality-critical tasks</li>
-        <li>Combine with Plan-Execute: reflect after each plan step</li>
-      </ul>
-    </div>
-    <div class="sys-diagram">
-<span>ReAct Loop:</span><br>
-User Goal → [LLM: Thought: "I need to find X"] → [Action: search("X")]<br>
-                                                          ↓<br>
-                                               [Observation: result]<br>
-                                                          ↓<br>
-                                    [LLM: Thought: "Now I know X, I need Y"] → ...<br>
-                                                          ↓ (when done)<br>
-                                               [Final Answer to user]<br>
-<br>
-<span>Plan-Execute:</span><br>
-Goal → [Planner LLM] → [Plan: step1, step2, step3, ...]<br>
-                              ↓<br>
-                    [Executor: run step1] → result<br>
-                    [Executor: run step2] → result<br>
-                    [Executor: run step3] → result → [Synthesize Final Answer]
-    </div>
     <div class="tradeoff-box">
-      <h4>When to Use Each</h4>
-      <p><strong>ReAct:</strong> task shape is unknown upfront, requires dynamic tool selection, research-style. <strong>Plan-Execute:</strong> task is well-defined, need auditability, cost-sensitive, production SLA. <strong>Reflection:</strong> quality is paramount over cost/latency — code review, compliance docs, medical summaries. In practice: combine them — Plan-Execute outer loop, ReAct within each step, Reflection on final output.</p>
+      <h4>ReAct vs Plan-Execute Trade-off</h4>
+      <p>ReAct: flexible, handles unknown task shapes, discovers information dynamically. But error compounds — step 3 failure based on wrong step 1 reasoning can cascade. Plan-Execute: auditable, cost-efficient (Executor = small/cheap model), predictable — but brittle if plan is wrong at step 1. Production guideline (Anthropic): start with the simplest approach. Most production agent failures come from over-engineering, not under-engineering. Add complexity only when needed.</p>
     </div>
   </div>
 </div>
 
-<!-- DAY 32 -->
 <div class="day-card" style="border-color:rgba(255,95,64,0.15);">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge" style="color:var(--accent2);">DAY 32</span>
@@ -1273,90 +1505,60 @@ Goal → [Planner LLM] → [Plan: step1, step2, step3, ...]<br>
       <div class="info-block">
         <h4>Memory Architecture</h4>
         <ul>
-          <li><strong>In-context (working):</strong> current conversation + tool results in prompt window. Fast but bounded by context limit (~128K tokens for GPT-4o).</li>
-          <li><strong>External long-term:</strong> vector DB (pgvector, Pinecone) — embed past interactions, retrieve relevant ones at query time</li>
-          <li><strong>Episodic:</strong> summarize older conversation chunks → write back to context. Google ADK's compaction approach.</li>
-          <li><strong>Semantic cache:</strong> embed user query → cosine match recent Q&A pairs → return cached if similarity > 0.95. Saves 30-60% LLM costs.</li>
-          <li><strong>Key insight:</strong> context window is a compile target — storage and presentation are separate concerns</li>
+          <li><strong>In-context (working):</strong> current conversation + tool results in prompt window — fast but bounded (~128K tokens)</li>
+          <li><strong>External long-term:</strong> vector DB (pgvector, Pinecone) — embed past interactions, retrieve relevant on each turn</li>
+          <li><strong>Episodic:</strong> summarize older conversation chunks → write summary back to context. Google ADK compaction approach.</li>
+          <li><strong>Semantic cache:</strong> embed user query → cosine match recent Q&A pairs → return cached if similarity &gt; threshold. Saves 30–60% LLM costs.</li>
         </ul>
       </div>
       <div class="info-block">
         <h4>Tool Design for Agents</h4>
         <ul>
-          <li>Every tool = JSON schema: name, description, parameters, returns</li>
-          <li>Description quality matters enormously — LLM uses it to decide when to call</li>
+          <li>Every tool = JSON schema: name, description, parameters, return type</li>
+          <li>Description quality matters enormously — LLM uses it to decide when and how to call</li>
           <li>Tools must be idempotent where possible — agents retry on failure</li>
-          <li>Tool registry: versioned, observable, rate-limited per tool</li>
-          <li>Function calling (OpenAI) vs tool use (Anthropic MCP) — same concept, different schemas</li>
-          <li>MCP (Model Context Protocol): standardized tool interface — growing ecosystem of plug-and-play integrations</li>
-          <li>Always validate + sanitize tool outputs before feeding back to LLM</li>
+          <li>MCP (Model Context Protocol): Anthropic's standard for plug-and-play tool integrations</li>
+          <li>Always validate + sanitize tool outputs before feeding back to LLM — prevent prompt injection from tool results</li>
         </ul>
       </div>
     </div>
     <div class="tradeoff-box">
-      <h4>Context Engineering — The Real Bottleneck in Production Agents</h4>
-      <p>Long-running agents hit context limits. Naive solution: larger context window. Real solution: <strong>treat context as a compiled artifact</strong>. Separate: durable state (DB) vs per-call working context (what you inject into the prompt). Apply compaction: summarize old events, keep recent N turns verbatim, inject only relevant memory chunks. This is the difference between an agent that works for 3 turns vs one that works for 300 turns in production.</p>
-    </div>
-    <div class="interview-tip">
-      <h4>Interview: "How would you make this agent work at scale?"</h4>
-      <p>The answer is always about context management + observability. "I'd implement a sliding window over conversation history with LLM-based summarization of older turns, store long-term facts in a vector DB with a retrieval step at the start of each turn, and trace every tool call with a unique span ID for debuggability." That's the Staff-level answer.</p>
+      <h4>Context Engineering — The Real Production Bottleneck</h4>
+      <p>Long-running agents exhaust their context window. Naive solution: bigger context window. Real solution: treat context as a compiled artifact. Separate durable state (DB) from per-call working context (prompt). Apply compaction: summarize old events, keep recent N turns verbatim, inject only relevant memory chunks retrieved from vector store. This is the difference between an agent that works for 3 turns and one that works for 300 turns in production.</p>
     </div>
   </div>
 </div>
 
-<!-- DAY 33 -->
 <div class="day-card" style="border-color:rgba(255,95,64,0.15);">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge" style="color:var(--accent2);">DAY 33</span>
-    <span class="day-name">Multi-Agent Systems — Orchestration, Supervisor, Specialist Agents</span>
+    <span class="day-name">Multi-Agent Systems — Supervisor, Specialist Agents, Orchestration</span>
     <span class="day-type" style="color:var(--accent2);border-color:rgba(255,95,64,0.2);">Architecture</span>
     <span class="day-toggle">▼</span>
   </div>
   <div class="day-body">
-    <div class="grid2">
-      <div class="info-block">
-        <h4>Orchestration Topologies</h4>
-        <ul>
-          <li><strong>Supervisor pattern:</strong> one orchestrator LLM routes tasks to specialist agents. Control always returns to supervisor. Most production-friendly.</li>
-          <li><strong>Hierarchical:</strong> supervisor → sub-supervisors → leaf agents. For very complex tasks (e.g., software dev pipeline with PM, Coder, QA agents).</li>
-          <li><strong>Peer-to-peer:</strong> agents communicate directly. Maximum flexibility, but debugging becomes exponentially harder at scale.</li>
-          <li><strong>Pipeline:</strong> agents in a fixed sequence — output of Agent A → input of Agent B. Use for ETL-style workflows.</li>
-        </ul>
-      </div>
-      <div class="info-block">
-        <h4>Specialist Agent Design</h4>
-        <ul>
-          <li>Each agent: scoped system prompt + bounded tool set + own memory</li>
-          <li>Research Agent: web search + summarization tools only</li>
-          <li>Code Agent: file read/write + shell exec + linter tools only</li>
-          <li>QA Agent: test runner + diff viewer + assertion tools only</li>
-          <li>Scoped boundaries prevent error cross-contamination between agents</li>
-          <li>Frameworks: LangGraph (stateful graphs), CrewAI (role-based crews), AutoGen (Microsoft, code-heavy)</li>
-        </ul>
-      </div>
-    </div>
     <div class="sys-diagram">
-<span>Supervisor Multi-Agent:</span><br>
-User Request → [Supervisor Agent: classify + route]<br>
-                    ↓              ↓              ↓<br>
-         [Research Agent]  [Code Agent]  [QA Agent]<br>
-         (web search tools) (shell tools) (test tools)<br>
-                    ↓              ↓              ↓<br>
-              [Results aggregated by Supervisor]<br>
-                              ↓<br>
-                    [Final Response to User]<br>
-<br>
-<span>Key:</span> Each agent runs its own ReAct loop internally.<br>
-Supervisor only sees final output of each — not intermediate steps.
+<span>Supervisor Multi-Agent Pattern:</span>
+User Request → [Supervisor Agent: classify + route task]
+                    ↓              ↓               ↓
+         [Research Agent]  [Code Agent]  [QA Agent]
+         (web search tools) (shell tools)  (test tools)
+                    ↓              ↓               ↓
+              [Results aggregated by Supervisor]
+                              ↓
+                    [Final Response to User]
+
+<span>Key:</span> Each specialist runs its own ReAct loop internally.
+Supervisor only sees the final output of each agent — not intermediate steps.
+Each agent has bounded tool access (least privilege).
     </div>
     <div class="tradeoff-box">
       <h4>Single vs Multi-Agent — When to Escalate</h4>
-      <p><strong>Start single agent.</strong> Add multi-agent only when: (1) tasks are genuinely parallel and independent, (2) specialist isolation prevents error contamination, (3) different agents need different tool permissions (security boundary). Don't add multi-agent for complexity's sake — debugging multi-agent race conditions and message passing failures in production is brutal. The Anthropic guidance: "simple, composable patterns consistently outperform complex frameworks in production."</p>
+      <p><strong>Start single agent + many tools.</strong> Add multi-agent only when: (1) tasks are genuinely parallel and independent, (2) specialist isolation prevents error contamination between domains, (3) different agents need different tool permissions (security boundary). Don't add multi-agent for complexity's sake. Production lesson from Anthropic: "The most successful implementations consistently used simple, composable patterns rather than complex frameworks." Debugging multi-agent race conditions and message passing failures is brutal.</p>
     </div>
   </div>
 </div>
 
-<!-- DAY 34 -->
 <div class="day-card" style="border-color:rgba(255,95,64,0.15);">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge" style="color:var(--accent2);">DAY 34</span>
@@ -1366,110 +1568,84 @@ Supervisor only sees final output of each — not intermediate steps.
   </div>
   <div class="day-body">
     <div class="sys-diagram">
-<span>LLM Platform HLD:</span><br>
-Client → [AI Gateway: auth, rate-limit (TPM), cost tracking, model routing]<br>
-                ↓                              ↓<br>
-       [Semantic Cache]              [Model Router]<br>
-       Redis + pgvector              ↓         ↓          ↓<br>
-       (cosine match → hit)   [GPT-4o]  [Claude]  [Llama on GPU]<br>
-                                             ↓<br>
-                              [Response Logger + Eval Pipeline]<br>
-                                             ↓<br>
-                              [Cost Aggregator → Per-tenant billing]<br>
-<br>
-<span>RAG Pipeline:</span><br>
-Docs → [Chunker (semantic)] → [Embedder: text-embedding-3] → [pgvector / Pinecone]<br>
-Query → [Embed] → [ANN top-20] → [Cross-encoder reranker: top-3]<br>
-      → [Prompt builder: budget-aware] → [LLM] → [Streamed response]
+<span>LLM Platform HLD:</span>
+Client → [AI Gateway: auth, TPM rate-limit, cost tracking, model routing]
+                ↓                              ↓
+       [Semantic Cache]              [Model Router]
+       (Redis + pgvector)            ↓          ↓          ↓
+       similarity &gt; 0.95 → hit  [GPT-4o] [Claude] [Llama-70B on GPU]
+                                               ↓
+                               [Response Logger + Cost Aggregator]
+
+<span>RAG Pipeline:</span>
+Docs → [Chunker (semantic boundaries)] → [Embedder: text-embedding-3]
+     → [pgvector / Pinecone]
+Query → [Embed query] → [ANN top-20] → [Cross-encoder reranker: top-3]
+      → [Budget-aware prompt builder] → [LLM] → [Streamed response]
     </div>
     <div class="grid2" style="margin-top:.75rem;">
       <div class="info-block">
-        <h4>AI Gateway — Key Design Decisions</h4>
+        <h4>AI Gateway Key Decisions</h4>
         <ul>
-          <li><strong>Rate limit in tokens, not requests:</strong> one request can cost 100 tokens or 100K tokens — TPM is the real resource</li>
-          <li><strong>Model routing:</strong> complexity classifier → route simple queries to Haiku/Gemini Flash, complex to GPT-4o. 60-80% cost reduction.</li>
-          <li><strong>Semantic cache:</strong> embed prompt → cosine search → if similarity > threshold return cached. Massive savings on repeated/similar queries.</li>
-          <li><strong>Fallback chain:</strong> primary model timeout/5xx → retry secondary → hardcoded fallback response</li>
-          <li><strong>Streaming:</strong> SSE/WebSocket for token-by-token output — reduces perceived latency dramatically</li>
+          <li><strong>Rate limit in tokens (TPM), not requests:</strong> one request can cost 100 or 100K tokens</li>
+          <li><strong>Model routing:</strong> classify query complexity → route simple to small/cheap model, complex to GPT-4o. 60-80% cost reduction.</li>
+          <li><strong>Semantic cache:</strong> embed prompt → cosine search → return cached if similarity &gt; 0.95. Massive savings on repeated queries.</li>
+          <li><strong>Fallback chain:</strong> primary model timeout → retry secondary → hardcoded fallback response</li>
+          <li><strong>Streaming:</strong> SSE for token-by-token output — reduces perceived latency dramatically</li>
         </ul>
       </div>
       <div class="info-block">
         <h4>RAG Production Trade-offs</h4>
         <ul>
-          <li><strong>Chunking:</strong> fixed-size (fast, predictable) vs semantic (better recall, expensive). Parent-child: retrieve small chunk, return larger parent for context.</li>
-          <li><strong>Hybrid search:</strong> ANN (semantic recall) + BM25 (exact keyword match) combined with RRF (Reciprocal Rank Fusion). Best precision.</li>
-          <li><strong>Reranker:</strong> ANN retrieves top-20, cross-encoder re-scores → top-3 into prompt. Expensive but dramatically improves answer quality.</li>
-          <li><strong>Context budget:</strong> dynamically allocate: system_prompt tokens + few_shot tokens + retrieved_chunks tokens + answer_reserve. Hard cap on chunk injection.</li>
-          <li><strong>Eval:</strong> RAGAS metrics — faithfulness, answer relevance, context recall. Golden dataset, run on every deploy as part of CI.</li>
+          <li><strong>Chunking:</strong> fixed-size (fast) vs semantic (better recall). Parent-child: retrieve small chunk, return larger parent for context.</li>
+          <li><strong>Hybrid search:</strong> ANN (semantic) + BM25 (keyword) combined with RRF scoring. Best precision.</li>
+          <li><strong>Reranker:</strong> cross-encoder re-scores top-20 → return top-3. Expensive but dramatically improves answer quality.</li>
+          <li><strong>Context budget:</strong> dynamically allocate tokens: system prompt + examples + retrieved chunks + answer reserve. Hard cap on chunk injection.</li>
+          <li><strong>Eval:</strong> RAGAS metrics: faithfulness, answer relevance, context recall. Run on golden dataset per deploy.</li>
         </ul>
       </div>
-    </div>
-    <div class="tradeoff-box">
-      <h4>Staff-Level: Where RAG Fails in Production</h4>
-      <p>Most RAG failures are retrieval failures, not LLM failures. Common problems: (1) Chunk too large → irrelevant context pollutes prompt. (2) Purely semantic search misses exact-match queries ("what is the value of field X?") → add BM25. (3) No reranker → top-1 chunk by cosine distance is often wrong. (4) Context window overflows → silently truncates the most relevant chunks. Fix: budget-aware prompt assembly that truncates least-relevant chunks first, not last.</p>
     </div>
   </div>
 </div>
 
-<!-- DAY 35 -->
 <div class="day-card" style="border-color:rgba(255,95,64,0.15);">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge" style="color:var(--accent2);">DAY 35</span>
-    <span class="day-name">Design an AI Coding Assistant (GitHub Copilot / Claude Code style)</span>
+    <span class="day-name">Design an AI Coding Assistant (Copilot / Claude Code Style)</span>
     <span class="day-type" style="color:var(--accent2);border-color:rgba(255,95,64,0.2);">Full HLD+LLD</span>
     <span class="day-toggle">▼</span>
   </div>
   <div class="day-body">
     <div class="sys-diagram">
-<span>AI Coding Assistant — Full System:</span><br>
-IDE Plugin → [LSP Server] → [Context Assembler]<br>
-                                    ↓<br>
-            [Repo Indexer: AST-chunked embeddings → pgvector]<br>
-            [File tree + open tabs + cursor position + git diff]<br>
-                                    ↓<br>
-                    [Retrieval: top-k relevant code chunks]<br>
-                                    ↓<br>
-              [Prompt: system + retrieved context + user intent]<br>
-                                    ↓<br>
-                     [LLM Gateway → streaming response]<br>
-                                    ↓<br>
-               [Output Validator: syntax check, lint, test run]<br>
-                                    ↓<br>
-                     [Streamed diff shown in IDE]
+<span>AI Coding Assistant — Full System:</span>
+IDE Plugin → [LSP Server] → [Context Assembler]
+                                    ↓
+    [Repo Indexer: AST-chunked embeddings → pgvector (incremental, file-watcher)]
+    [Current file + open tabs + cursor position + git diff + test results]
+                                    ↓
+                    [Retrieval: top-k relevant code chunks by semantic + BM25]
+                                    ↓
+              [Prompt builder: system + repo context + user intent — 8K token budget]
+                                    ↓
+                     [LLM Gateway → streaming response]
+                                    ↓
+               [Output Validator: AST parse, lint, run existing tests]
+                                    ↓
+                     [Streamed diff shown in IDE — user approves before apply]
     </div>
-    <div class="grid2" style="margin-top:.75rem;">
-      <div class="info-block">
-        <h4>Key Design Decisions</h4>
-        <ul>
-          <li><strong>AST-based chunking:</strong> chunk by function/class boundaries, not fixed tokens. Preserves semantic units.</li>
-          <li><strong>Context assembly:</strong> current file (high priority) + recently edited files + repo-level retrieval + git diff. Budget: 8K tokens for context, 4K for completion.</li>
-          <li><strong>Incremental indexing:</strong> file watcher → re-embed only changed files. Full re-index on branch switch.</li>
-          <li><strong>Latency budget:</strong> inline completions need < 200ms p50. Use smaller/cached model for inline; larger for chat.</li>
-        </ul>
-      </div>
-      <div class="info-block">
-        <h4>Safety + Observability</h4>
-        <ul>
-          <li><strong>Sandboxed execution:</strong> code agent runs in container with no network, bounded CPU/mem. Kill after timeout.</li>
-          <li><strong>Output validation:</strong> parse AST of generated code, run linter, run existing test suite before showing diff</li>
-          <li><strong>Trace every agent step:</strong> span per tool call (file read, test run, search) — essential for debugging runaway agents</li>
-          <li><strong>Cost cap per session:</strong> abort if token spend > budget. Surface cost estimate to user upfront.</li>
-          <li><strong>Human-in-the-loop:</strong> never auto-apply diffs — always require explicit user approval</li>
-        </ul>
-      </div>
-    </div>
-    <div class="interview-tip">
-      <h4>Staff-Level Framing for This Question</h4>
-      <p>Interviewers asking "design GitHub Copilot" expect you to go beyond "call an LLM." The hardest parts are: (1) <strong>context assembly</strong> — what code do you put in the prompt and how do you rank relevance? (2) <strong>latency</strong> — inline completions must be imperceptibly fast. (3) <strong>safety</strong> — you're running LLM-generated code, sandbox everything. Drive to these hard parts yourself — don't wait to be asked. That's the Staff signal.</p>
+    <div class="tradeoff-box">
+      <h4>The Three Hard Problems</h4>
+      <p><strong>1. Context assembly:</strong> what code do you put in the prompt and how do you rank relevance? AST-based chunking preserves function/class boundaries. Retrieve by semantic similarity + recency + call-graph proximity. Budget: 8K tokens for context, 4K for completion.<br>
+      <strong>2. Latency:</strong> inline completions need &lt;200ms p50. Use smaller/cached model for inline autocomplete; larger for chat and complex refactoring. Pre-warm model for active files.<br>
+      <strong>3. Safety:</strong> LLM-generated code runs on your machine. Sandbox every tool call (file write, shell exec) in a container. Never auto-apply diffs — always require user approval. Cost cap per session: abort if token spend exceeds budget.</p>
     </div>
   </div>
 </div>
 
-<!-- DAY 36 -->
 <div class="day-card" style="border-color:rgba(255,95,64,0.15);">
   <div class="day-header" onclick="toggle(this)">
     <span class="day-num-badge" style="color:var(--accent2);">DAY 36</span>
-    <span class="day-name">AI Agent Observability, Safety, Cost Control — Production Checklist</span>
+    <span class="day-name">Agent Observability, Safety & Production Checklist</span>
     <span class="day-type" style="color:var(--accent2);border-color:rgba(255,95,64,0.2);">Production</span>
     <span class="day-toggle">▼</span>
   </div>
@@ -1478,32 +1654,28 @@ IDE Plugin → [LSP Server] → [Context Assembler]<br>
       <div class="info-block">
         <h4>Observability for Agents</h4>
         <ul>
-          <li><strong>Trace every tool call:</strong> span ID, tool name, input args, output, latency, token cost</li>
-          <li><strong>Agent run trace:</strong> tree of all Thought → Action → Observation steps, stored per run_id</li>
-          <li><strong>Token usage per step:</strong> attribute cost to each LLM call — identify expensive steps for optimization</li>
-          <li><strong>Evaluation pipeline:</strong> run golden dataset after every deploy — catch regressions before users do</li>
-          <li>Tools: LangSmith, Langfuse, Helicone, Arize Phoenix — all purpose-built for LLM tracing</li>
+          <li>Trace every tool call: span ID, tool name, input, output, latency, token cost</li>
+          <li>Agent run trace: full Thought → Action → Observation tree per run_id — stored in persistent log</li>
+          <li>Token cost per step: attribute cost to each LLM call — find expensive steps to optimize</li>
+          <li>Eval pipeline: RAGAS / custom golden dataset — run on every deploy, catch regressions</li>
+          <li>Tools: LangSmith, Langfuse, Helicone, Arize Phoenix — purpose-built for LLM tracing</li>
         </ul>
       </div>
       <div class="info-block">
-        <h4>Safety + Guardrails</h4>
+        <h4>Safety Layers</h4>
         <ul>
-          <li><strong>Input validation:</strong> prompt injection detection, PII scrubbing before sending to LLM</li>
-          <li><strong>Output validation:</strong> structured output schemas (Pydantic / JSON Schema) — reject malformed outputs</li>
-          <li><strong>Tool permission scoping:</strong> each agent only has access to tools it needs — least privilege</li>
-          <li><strong>Sandboxed execution:</strong> code-running agents in network-isolated containers with resource limits</li>
-          <li><strong>Human-in-the-loop gates:</strong> for irreversible actions (send email, deploy to prod, delete data) — require explicit approval</li>
-          <li><strong>Max iterations + cost cap:</strong> hard stop to prevent runaway agent loops</li>
+          <li>Input validation: prompt injection detection, PII scrubbing before LLM</li>
+          <li>Output validation: structured output schemas (JSON Schema/Pydantic) — reject malformed</li>
+          <li>Tool permission scoping: each agent gets only tools it needs — least privilege</li>
+          <li>Sandboxed execution: code-running agents in network-isolated containers with CPU/mem limits</li>
+          <li>Human-in-the-loop gates: for irreversible actions (send email, deploy, delete data) — explicit approval required</li>
+          <li>Max iterations + cost cap: hard stop prevents runaway loops</li>
         </ul>
       </div>
     </div>
     <div class="tradeoff-box">
-      <h4>The Real Failure Modes of Production Agents</h4>
-      <p>(1) <strong>Compounding hallucination:</strong> early wrong tool call → wrong observation → wrong next step → cascades. Fix: validate tool output schema, add reflection step on unexpected results. (2) <strong>Context poisoning:</strong> a malicious document in RAG retrieval injects instructions into agent context (prompt injection). Fix: separate retrieved content from instructions in prompt structure. (3) <strong>Cost explosion:</strong> agent loops without progress. Fix: max_steps + cost budget hard cap + loop detection (hash of recent states). (4) <strong>No audit trail:</strong> impossible to debug what the agent did or why. Fix: trace every step to persistent log from day 1.</p>
-    </div>
-    <div class="interview-tip">
-      <h4>The Staff-Level Answer to "How do you make agents production-safe?"</h4>
-      <p>Never just say "add guardrails." Say: "I'd treat agent safety as a layered defense: input sanitization, scoped tool permissions, sandboxed execution for code tools, output schema validation, human approval gates for irreversible actions, hard token/iteration budgets, and full distributed tracing of every step. Observability isn't optional — it's the only way to debug non-deterministic LLM behavior at scale."</p>
+      <h4>Real Production Failure Modes</h4>
+      <p>(1) <strong>Compounding hallucination:</strong> wrong tool call → wrong observation → wrong next step → cascades. Fix: validate tool output schema, add reflection on unexpected results. (2) <strong>Context poisoning / prompt injection:</strong> malicious content in RAG retrieval injects instructions. Fix: separate retrieved content from instruction sections structurally. (3) <strong>Cost explosion:</strong> agent loops without progress. Fix: max_steps + cost budget hard cap + loop detection (hash of recent states). (4) <strong>No audit trail:</strong> impossible to debug what the agent did. Fix: persistent trace log from day one — non-negotiable.</p>
     </div>
   </div>
 </div>
@@ -1511,10 +1683,10 @@ IDE Plugin → [LSP Server] → [Context Assembler]<br>
 <div class="checkpoint-card" style="background:rgba(255,95,64,0.04);border-color:rgba(255,95,64,0.25);margin-top:2rem;">
   <h3 style="color:var(--accent2);">🤖 Week 5 Checkpoint — AI Agent Design</h3>
   <ul>
-    <li><strong>Day 31 mock:</strong> "Design an AI research agent that can browse the web and summarize findings." Draw the ReAct loop, tool registry, memory strategy. What fails at 100 concurrent users?</li>
-    <li><strong>Day 32 mock:</strong> "How would you build a RAG system for a 10M document legal corpus?" Cover chunking, hybrid search, reranking, context budget, latency SLA.</li>
-    <li><strong>Day 33 mock:</strong> "Design GitHub Copilot." Cover AST indexing, context assembly, latency, sandboxed execution, cost control. Time yourself: 45 mins, drive the hard problems.</li>
-    <li><strong>Staff signal:</strong> In every agent design, proactively raise: observability, cost caps, safety guardrails, and what happens when the agent takes a wrong step on iteration 3 of 10. If you raise these unprompted, you're interviewing at Staff level.</li>
+    <li><strong>Mock 1:</strong> "Design an AI research agent that browses the web and summarizes findings." Draw the ReAct loop, tool registry, memory strategy. What breaks at 100 concurrent users?</li>
+    <li><strong>Mock 2:</strong> "Design a RAG system for a 10M document legal corpus." Cover chunking strategy, hybrid search, reranking, context budget, latency SLA, eval pipeline.</li>
+    <li><strong>Mock 3:</strong> "Design GitHub Copilot." Cover AST indexing, context assembly, latency budget, sandboxed execution, cost control. Time yourself: 45 mins, drive the hard problems proactively.</li>
+    <li><strong>The signal:</strong> In every agent design, proactively raise observability, cost caps, safety guardrails, and what happens when the agent takes a wrong turn on iteration 3 of 10. Raising these unprompted is the interview signal.</li>
   </ul>
 </div>
 
